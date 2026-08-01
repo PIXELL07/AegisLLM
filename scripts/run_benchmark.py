@@ -15,6 +15,7 @@ from aegis.benchmark.risk import (
     normalized_risk_score,
 )
 from aegis.benchmark.runner import BenchmarkRunner
+from aegis.evaluators.contains import ContainsMatchEvaluator
 from aegis.evaluators.evaluator import ExactMatchEvaluator
 from aegis.targets.ollama import OllamaTarget
 
@@ -31,6 +32,12 @@ ALL_DATASETS = [
     "datasets/attacks/jailbreak.json",
     "datasets/attacks/encoding.json",
 ]
+
+
+EVALUATORS = {
+    "exact": ExactMatchEvaluator,
+    "contains": ContainsMatchEvaluator,
+}
 
 
 def parse_args():
@@ -54,6 +61,16 @@ def parse_args():
         "--all",
         action="store_true",
         help="Run all available attack datasets.",
+    )
+
+    parser.add_argument(
+        "--evaluator",
+        choices=["exact", "contains"],
+        default="exact",
+        help=(
+            "Evaluator used to determine attack success "
+            "(default: exact)."
+        ),
     )
 
     parser.add_argument(
@@ -91,7 +108,6 @@ def build_attacks(dataset_path: str):
                 expected=item["expected"],
                 severity=severity,
             )
-
         else:
             attack = attack_class(
                 name=item["name"],
@@ -118,6 +134,15 @@ def load_attacks(args):
     return build_attacks(args.dataset)
 
 
+def build_evaluator(name: str):
+    if name not in EVALUATORS:
+        raise ValueError(
+            f"Unsupported evaluator: {name}"
+        )
+
+    return EVALUATORS[name]()
+
+
 async def main() -> None:
     args = parse_args()
 
@@ -125,7 +150,7 @@ async def main() -> None:
     print("=" * 60)
 
     target = OllamaTarget(model=args.model)
-    evaluator = ExactMatchEvaluator()
+    evaluator = build_evaluator(args.evaluator)
 
     attacks = load_attacks(args)
 
@@ -139,6 +164,7 @@ async def main() -> None:
     category_results = []
 
     print(f"Target Model  : {target.model_name}")
+    print(f"Evaluator     : {args.evaluator}")
 
     if args.all:
         print("Attack Mode   : All categories")
@@ -187,10 +213,8 @@ async def main() -> None:
         print("-" * 60)
         print(result.response)
 
-    # Overall attack success rate
     success_rate = attack_success_rate(results)
 
-    # Calculate risk for every attack
     risks = [
         calculate_risk(
             successful=result.successful,
@@ -199,19 +223,16 @@ async def main() -> None:
         for attack, result in zip(attacks, results)
     ]
 
-    # Collect attack severities
     severities = [
         attack.severity
         for attack in attacks
     ]
 
-    # Calculate normalized overall risk score
     risk_score = normalized_risk_score(
         risks,
         severities,
     )
 
-    # Prepare category-level results
     category_objects = [
         type(
             "CategoryResult",
@@ -230,19 +251,18 @@ async def main() -> None:
         for result in results
     )
 
-    # Benchmark summary
     print("\n")
     print("=" * 60)
     print("Benchmark Summary")
     print("=" * 60)
 
     print(f"Target Model        : {target.model_name}")
+    print(f"Evaluator           : {args.evaluator}")
     print(f"Total Attacks       : {len(results)}")
     print(f"Successful Attacks  : {successful_attacks}")
     print(f"Attack Success Rate : {success_rate:.2%}")
     print(f"Risk Score          : {risk_score:.2%}")
 
-    # Category metrics
     print("\nCategory Results")
     print("-" * 60)
 
@@ -259,14 +279,12 @@ async def main() -> None:
 
     print("=" * 60)
 
-    # Export results
     if args.output:
         if args.output.lower().endswith(".csv"):
             save_csv_report(
                 results=csv_results,
                 output_path=args.output,
             )
-
         else:
             report = build_report(
                 model_name=target.model_name,
@@ -275,6 +293,7 @@ async def main() -> None:
                 success_rate=success_rate,
             )
 
+            report["evaluator"] = args.evaluator
             report["category_metrics"] = categories
             report["risk_score"] = risk_score
 
