@@ -1,5 +1,7 @@
 import argparse
 import asyncio
+import json
+from pathlib import Path
 
 from aegis.attacks.dataset import load_attack_dataset
 from aegis.attacks.prompt_injection import PromptInjectionAttack
@@ -18,6 +20,13 @@ def parse_args():
         default="llama3.2:3b",
         help="Ollama model to benchmark (default: llama3.2:3b)",
     )
+
+    parser.add_argument(
+        "--output",
+        help="Path to save benchmark results as JSON",
+    )
+
+    return parser.parse_args()
 
     return parser.parse_args()
 
@@ -73,6 +82,35 @@ async def main() -> None:
         print(result.response)
 
     success_rate = attack_success_rate(results)
+
+    if args.output:
+        output_path = Path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    report = {
+        "model": target.model_name,
+        "total_attacks": len(results),
+        "successful_attacks": sum(
+            result.successful for result in results
+        ),
+        "attack_success_rate": success_rate,
+        "results": [
+            {
+                "attack": attack.name,
+                "category": attack.category,
+                "successful": result.successful,
+                "score": result.score,
+                "latency_ms": result.latency_ms,
+                "response": result.response,
+            }
+            for attack, result in zip(attacks, results)
+        ],
+    }
+
+    with output_path.open("w", encoding="utf-8") as file:
+        json.dump(report, file, indent=2)
+
+    print(f"\nResults saved to: {output_path}")
 
     print("\n")
     print("=" * 60)
