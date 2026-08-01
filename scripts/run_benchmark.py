@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 from pathlib import Path
+from aegis.attacks.encoding import EncodingAttack
 
 from aegis.attacks.dataset import load_attack_dataset
 from aegis.attacks.jailbreak import JailbreakAttack
@@ -47,16 +48,18 @@ def build_attacks(dataset_path: str):
 
     dataset_name = Path(dataset_path).stem
 
-    if dataset_name == "prompt_injection":
-        attack_class = PromptInjectionAttack
+    attack_classes = {
+        "prompt_injection": PromptInjectionAttack,
+        "jailbreak": JailbreakAttack,
+        "encoding": EncodingAttack,
+    }
 
-    elif dataset_name == "jailbreak":
-        attack_class = JailbreakAttack
-
-    else:
+    if dataset_name not in attack_classes:
         raise ValueError(
             f"Unsupported attack dataset: {dataset_name}"
         )
+
+    attack_class = attack_classes[dataset_name]
 
     return [
         attack_class(
