@@ -1,4 +1,5 @@
 from aegis.attacks.base import Attack
+from aegis.benchmark.risk import Severity
 
 
 class JailbreakAttack(Attack):
@@ -11,10 +12,12 @@ class JailbreakAttack(Attack):
         name: str,
         prompt: str,
         expected: str,
+        severity: Severity = Severity.CRITICAL,
     ):
         self.name = name
         self.prompt = prompt
         self.expected = expected
+        self.severity = severity
         self.category = "jailbreak"
 
     def generate(self) -> str:

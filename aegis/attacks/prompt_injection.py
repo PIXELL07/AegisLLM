@@ -1,30 +1,24 @@
-from __future__ import annotations
-
 from aegis.attacks.base import Attack
+from aegis.benchmark.risk import Severity
 
 
 class PromptInjectionAttack(Attack):
+    """
+    Represents a prompt injection attack against a language model.
+    """
+
     def __init__(
         self,
         name: str,
         prompt: str,
         expected: str,
-    ) -> None:
-        self._name = name
-        self._prompt = prompt
-        self._expected = expected
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def category(self) -> str:
-        return "prompt_injection"
-
-    @property
-    def expected(self) -> str:
-        return self._expected
+        severity: Severity = Severity.HIGH,
+    ):
+        self.name = name
+        self.prompt = prompt
+        self.expected = expected
+        self.severity = severity
+        self.category = "prompt_injection"
 
     def generate(self) -> str:
-        return self._prompt
+        return self.prompt
