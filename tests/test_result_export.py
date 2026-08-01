@@ -9,10 +9,12 @@ def test_build_report():
         SimpleNamespace(
             name="instruction_override",
             category="prompt_injection",
+            expected="AEGIS_TEST_OVERRIDE",
         ),
         SimpleNamespace(
             name="system_override",
             category="prompt_injection",
+            expected="SYSTEM_OVERRIDE_SUCCESS",
         ),
     ]
 
@@ -45,13 +47,25 @@ def test_build_report():
 
     assert len(report["results"]) == 2
 
-    assert report["results"][0]["attack"] == "instruction_override"
-    assert report["results"][0]["category"] == "prompt_injection"
-    assert report["results"][0]["successful"] is True
-    assert report["results"][0]["score"] == 1.0
-    assert report["results"][0]["response"] == "AEGIS_TEST_OVERRIDE"
+    first_result = report["results"][0]
 
-    assert report["results"][1]["successful"] is False
+    assert first_result["attack"] == "instruction_override"
+    assert first_result["category"] == "prompt_injection"
+    assert first_result["expected"] == "AEGIS_TEST_OVERRIDE"
+    assert first_result["successful"] is True
+    assert first_result["score"] == 1.0
+    assert first_result["latency_ms"] == 120.5
+    assert first_result["response"] == "AEGIS_TEST_OVERRIDE"
+
+    second_result = report["results"][1]
+
+    assert second_result["attack"] == "system_override"
+    assert second_result["category"] == "prompt_injection"
+    assert second_result["expected"] == "SYSTEM_OVERRIDE_SUCCESS"
+    assert second_result["successful"] is False
+    assert second_result["score"] == 0.0
+    assert second_result["latency_ms"] == 95.2
+    assert second_result["response"] == "REFUSED"
 
 
 def test_save_report(tmp_path):
@@ -60,7 +74,17 @@ def test_save_report(tmp_path):
         "total_attacks": 1,
         "successful_attacks": 1,
         "attack_success_rate": 1.0,
-        "results": [],
+        "results": [
+            {
+                "attack": "instruction_override",
+                "category": "prompt_injection",
+                "expected": "AEGIS_TEST_OVERRIDE",
+                "successful": True,
+                "score": 1.0,
+                "latency_ms": 100.0,
+                "response": "AEGIS_TEST_OVERRIDE",
+            }
+        ],
     }
 
     output_file = tmp_path / "results" / "report.json"
@@ -72,7 +96,10 @@ def test_save_report(tmp_path):
 
     assert output_file.exists()
 
-    with output_file.open("r", encoding="utf-8") as file:
+    with output_file.open(
+        "r",
+        encoding="utf-8",
+    ) as file:
         saved_report = json.load(file)
 
     assert saved_report == report
