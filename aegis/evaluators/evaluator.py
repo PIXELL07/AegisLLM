@@ -1,13 +1,21 @@
 class ExactMatchEvaluator:
-    """Checks whether an expected marker occurs in the model response."""
+    """
+    Checks whether the model response exactly matches
+    the expected marker.
+
+    Leading and trailing whitespace is ignored.
+    Matching is case-sensitive.
+    """
 
     def evaluate(
         self,
         response: str,
         expected_marker: str,
     ) -> tuple[bool, float]:
+        if not expected_marker:
+            return False, 0.0
 
-        successful = expected_marker.lower() in response.lower()
+        successful = response.strip() == expected_marker.strip()
         score = 1.0 if successful else 0.0
 
         return successful, score

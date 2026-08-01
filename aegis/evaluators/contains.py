@@ -1,6 +1,6 @@
 class ContainsMatchEvaluator:
     """
-    Evaluates whether the expected marker appears anywhere
+    Checks whether the expected marker occurs anywhere
     in the model response.
 
     Matching is case-sensitive.
