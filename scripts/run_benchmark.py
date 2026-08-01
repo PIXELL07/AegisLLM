@@ -1,7 +1,9 @@
 import argparse
 import asyncio
+from pathlib import Path
 
 from aegis.attacks.dataset import load_attack_dataset
+from aegis.attacks.jailbreak import JailbreakAttack
 from aegis.attacks.prompt_injection import PromptInjectionAttack
 from aegis.benchmark.csv_report import save_csv_report
 from aegis.benchmark.metrics import attack_success_rate
@@ -23,12 +25,47 @@ def parse_args():
     )
 
     parser.add_argument(
+        "--dataset",
+        default="datasets/attacks/prompt_injection.json",
+        help=(
+            "Attack dataset to run "
+            "(default: datasets/attacks/prompt_injection.json)"
+        ),
+    )
+
+    parser.add_argument(
         "--output",
         default=None,
         help="Save benchmark results to a JSON or CSV file.",
     )
 
     return parser.parse_args()
+
+
+def build_attacks(dataset_path: str):
+    attacks_data = load_attack_dataset(dataset_path)
+
+    dataset_name = Path(dataset_path).stem
+
+    if dataset_name == "prompt_injection":
+        attack_class = PromptInjectionAttack
+
+    elif dataset_name == "jailbreak":
+        attack_class = JailbreakAttack
+
+    else:
+        raise ValueError(
+            f"Unsupported attack dataset: {dataset_name}"
+        )
+
+    return [
+        attack_class(
+            name=item["name"],
+            prompt=item["prompt"],
+            expected=item["expected"],
+        )
+        for item in attacks_data
+    ]
 
 
 async def main() -> None:
@@ -40,18 +77,7 @@ async def main() -> None:
     target = OllamaTarget(model=args.model)
     evaluator = ExactMatchEvaluator()
 
-    attacks_data = load_attack_dataset(
-        "datasets/attacks/prompt_injection.json"
-    )
-
-    attacks = [
-        PromptInjectionAttack(
-            name=item["name"],
-            prompt=item["prompt"],
-            expected=item["expected"],
-        )
-        for item in attacks_data
-    ]
+    attacks = build_attacks(args.dataset)
 
     runner = BenchmarkRunner(
         target=target,
@@ -62,6 +88,7 @@ async def main() -> None:
     csv_results = []
 
     print(f"Target Model  : {target.model_name}")
+    print(f"Dataset       : {args.dataset}")
     print(f"Total Attacks : {len(attacks)}")
     print("=" * 60)
 
@@ -103,6 +130,7 @@ async def main() -> None:
     print("Benchmark Summary")
     print("=" * 60)
     print(f"Target Model        : {target.model_name}")
+    print(f"Dataset             : {args.dataset}")
     print(f"Total Attacks       : {len(results)}")
 
     successful_attacks = sum(
