@@ -1,7 +1,6 @@
 import argparse
 import asyncio
-import json
-from pathlib import Path
+from aegis.benchmark.report import build_report, save_report
 
 from aegis.attacks.dataset import load_attack_dataset
 from aegis.attacks.prompt_injection import PromptInjectionAttack
@@ -84,33 +83,16 @@ async def main() -> None:
     success_rate = attack_success_rate(results)
 
     if args.output:
-        output_path = Path(args.output)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+        report = build_report(
+            model_name=target.model_name,
+            attacks=attacks,
+            results=results,
+            success_rate=success_rate,
+    )
 
-    report = {
-        "model": target.model_name,
-        "total_attacks": len(results),
-        "successful_attacks": sum(
-            result.successful for result in results
-        ),
-        "attack_success_rate": success_rate,
-        "results": [
-            {
-                "attack": attack.name,
-                "category": attack.category,
-                "successful": result.successful,
-                "score": result.score,
-                "latency_ms": result.latency_ms,
-                "response": result.response,
-            }
-            for attack, result in zip(attacks, results)
-        ],
-    }
+    save_report(report, args.output)
 
-    with output_path.open("w", encoding="utf-8") as file:
-        json.dump(report, file, indent=2)
-
-    print(f"\nResults saved to: {output_path}")
+    print(f"\nResults saved to: {args.output}")
 
     print("\n")
     print("=" * 60)
