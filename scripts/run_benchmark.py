@@ -9,6 +9,11 @@ from aegis.attacks.prompt_injection import PromptInjectionAttack
 from aegis.benchmark.csv_report import save_csv_report
 from aegis.benchmark.metrics import attack_success_rate, category_metrics
 from aegis.benchmark.report import build_report, save_report
+from aegis.benchmark.risk import (
+    Severity,
+    calculate_risk,
+    normalized_risk_score,
+)
 from aegis.benchmark.runner import BenchmarkRunner
 from aegis.evaluators.evaluator import ExactMatchEvaluator
 from aegis.targets.ollama import OllamaTarget
@@ -19,6 +24,7 @@ ATTACK_CLASSES = {
     "jailbreak": JailbreakAttack,
     "encoding": EncodingAttack,
 }
+
 
 ALL_DATASETS = [
     "datasets/attacks/prompt_injection.json",
@@ -71,14 +77,31 @@ def build_attacks(dataset_path: str):
 
     attack_class = ATTACK_CLASSES[dataset_name]
 
-    return [
-        attack_class(
-            name=item["name"],
-            prompt=item["prompt"],
-            expected=item["expected"],
-        )
-        for item in attacks_data
-    ]
+    attacks = []
+
+    for item in attacks_data:
+        severity_value = item.get("severity")
+
+        if severity_value is not None:
+            severity = Severity(severity_value)
+
+            attack = attack_class(
+                name=item["name"],
+                prompt=item["prompt"],
+                expected=item["expected"],
+                severity=severity,
+            )
+
+        else:
+            attack = attack_class(
+                name=item["name"],
+                prompt=item["prompt"],
+                expected=item["expected"],
+            )
+
+        attacks.append(attack)
+
+    return attacks
 
 
 def load_attacks(args):
@@ -155,6 +178,7 @@ async def main() -> None:
 
         print(f"Attack     : {attack.name}")
         print(f"Category   : {attack.category}")
+        print(f"Severity   : {attack.severity.value}")
         print(f"Successful : {result.successful}")
         print(f"Score      : {result.score}")
         print(f"Latency    : {result.latency_ms:.2f} ms")
@@ -163,8 +187,31 @@ async def main() -> None:
         print("-" * 60)
         print(result.response)
 
+    # Overall attack success rate
     success_rate = attack_success_rate(results)
 
+    # Calculate risk for every attack
+    risks = [
+        calculate_risk(
+            successful=result.successful,
+            severity=attack.severity,
+        )
+        for attack, result in zip(attacks, results)
+    ]
+
+    # Collect attack severities
+    severities = [
+        attack.severity
+        for attack in attacks
+    ]
+
+    # Calculate normalized overall risk score
+    risk_score = normalized_risk_score(
+        risks,
+        severities,
+    )
+
+    # Prepare category-level results
     category_objects = [
         type(
             "CategoryResult",
@@ -183,15 +230,19 @@ async def main() -> None:
         for result in results
     )
 
+    # Benchmark summary
     print("\n")
     print("=" * 60)
     print("Benchmark Summary")
     print("=" * 60)
+
     print(f"Target Model        : {target.model_name}")
     print(f"Total Attacks       : {len(results)}")
     print(f"Successful Attacks  : {successful_attacks}")
     print(f"Attack Success Rate : {success_rate:.2%}")
+    print(f"Risk Score          : {risk_score:.2%}")
 
+    # Category metrics
     print("\nCategory Results")
     print("-" * 60)
 
@@ -208,6 +259,7 @@ async def main() -> None:
 
     print("=" * 60)
 
+    # Export results
     if args.output:
         if args.output.lower().endswith(".csv"):
             save_csv_report(
@@ -217,13 +269,14 @@ async def main() -> None:
 
         else:
             report = build_report(
-                model=target.model_name,
+                model_name=target.model_name,
                 attacks=attacks,
                 results=results,
                 success_rate=success_rate,
             )
 
             report["category_metrics"] = categories
+            report["risk_score"] = risk_score
 
             save_report(
                 report,
