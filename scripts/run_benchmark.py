@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 
 from aegis.attacks.dataset import load_attack_dataset
@@ -7,12 +8,25 @@ from aegis.benchmark.runner import BenchmarkRunner
 from aegis.evaluators.evaluator import ExactMatchEvaluator
 from aegis.targets.ollama import OllamaTarget
 
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Run AegisLLM security benchmarks against an Ollama model."
+    )
+
+    parser.add_argument(
+        "--model",
+        default="llama3.2:3b",
+        help="Ollama model to benchmark (default: llama3.2:3b)",
+    )
+
+    return parser.parse_args()
 
 async def main() -> None:
+    args = parse_args()
     print("\nAegisLLM Multi-Attack Benchmark")
     print("=" * 60)
 
-    target = OllamaTarget(model="llama3.2:3b")
+    target = OllamaTarget(model=args.model)
     evaluator = ExactMatchEvaluator()
 
     attacks_data = load_attack_dataset(
