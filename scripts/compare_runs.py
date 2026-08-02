@@ -5,13 +5,13 @@ from pathlib import Path
 from typing import Any
 
 from aegis.benchmark.regression import compare_reports
+from aegis.benchmark.regression_report import (
+    build_regression_report,
+    save_regression_report,
+)
 
 
 def non_negative_float(value: str) -> float:
-    """
-    Parse a non-negative floating-point CLI value.
-    """
-
     try:
         number = float(value)
     except ValueError as exc:
@@ -76,6 +76,14 @@ def parse_args():
         ),
     )
 
+    parser.add_argument(
+        "--output",
+        help=(
+            "Optional path for saving a machine-readable "
+            "JSON regression report."
+        ),
+    )
+
     return parser.parse_args()
 
 
@@ -113,7 +121,6 @@ def load_report(path: str) -> dict[str, Any]:
 
 def format_change(value: float) -> str:
     sign = "+" if value > 0 else ""
-
     return f"{sign}{value:.2%}"
 
 
@@ -138,7 +145,6 @@ def print_comparison(
     )
 
     print()
-
     print("Regression Thresholds")
     print("-" * 70)
 
@@ -307,15 +313,8 @@ def run_comparison(
     asr_threshold: float = 0.0,
     risk_threshold: float = 0.0,
     category_threshold: float = 0.0,
+    output: str | None = None,
 ) -> int:
-    """
-    Compare two benchmark reports.
-
-    Returns:
-        0 if no security regression is detected.
-        1 if a security regression is detected.
-    """
-
     baseline = load_report(
         baseline_path
     )
@@ -338,6 +337,23 @@ def run_comparison(
         comparison,
     )
 
+    if output:
+        report = build_regression_report(
+            baseline,
+            current,
+            comparison,
+        )
+
+        save_regression_report(
+            report,
+            output,
+        )
+
+        print()
+        print(
+            f"Regression report saved to: {output}"
+        )
+
     if comparison["regression_detected"]:
         return 1
 
@@ -353,6 +369,7 @@ def main() -> None:
         asr_threshold=args.asr_threshold,
         risk_threshold=args.risk_threshold,
         category_threshold=args.category_threshold,
+        output=args.output,
     )
 
     sys.exit(exit_code)
