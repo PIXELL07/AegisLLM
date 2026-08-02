@@ -111,6 +111,84 @@ def print_comparison(
         f"{format_change(comparison['risk_change']):>12}"
     )
 
+    # Category comparison
+    print()
+    print("Category Changes")
+    print("-" * 70)
+
+    print(
+        f"{'Category':<24}"
+        f"{'Baseline':>12}"
+        f"{'Current':>12}"
+        f"{'Change':>12}"
+    )
+
+    print("-" * 70)
+
+    category_comparison = comparison[
+        "category_comparison"
+    ]
+
+    if category_comparison:
+        for category, metrics in category_comparison.items():
+            print(
+                f"{category:<24}"
+                f"{metrics['baseline_asr']:>11.2%}"
+                f"{metrics['current_asr']:>12.2%}"
+                f"{format_change(metrics['change']):>12}"
+            )
+    else:
+        print("No category data available.")
+
+    # Category regressions
+    print()
+    print("Category Regressions")
+    print("-" * 70)
+
+    category_regressions = comparison[
+        "category_regressions"
+    ]
+
+    if category_regressions:
+        for category in category_regressions:
+            metrics = category_comparison[
+                category
+            ]
+
+            print(
+                f"[REGRESSION] {category}: "
+                f"{metrics['baseline_asr']:.2%} -> "
+                f"{metrics['current_asr']:.2%} "
+                f"({format_change(metrics['change'])})"
+            )
+    else:
+        print("None")
+
+    # Category improvements
+    print()
+    print("Category Improvements")
+    print("-" * 70)
+
+    category_improvements = comparison[
+        "category_improvements"
+    ]
+
+    if category_improvements:
+        for category in category_improvements:
+            metrics = category_comparison[
+                category
+            ]
+
+            print(
+                f"[IMPROVEMENT] {category}: "
+                f"{metrics['baseline_asr']:.2%} -> "
+                f"{metrics['current_asr']:.2%} "
+                f"({format_change(metrics['change'])})"
+            )
+    else:
+        print("None")
+
+    # Individual attack regressions
     print()
     print("Attack Regressions")
     print("-" * 70)
@@ -128,6 +206,7 @@ def print_comparison(
     else:
         print("None")
 
+    # Individual attack improvements
     print()
     print("Attack Improvements")
     print("-" * 70)
