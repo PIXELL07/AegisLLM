@@ -57,11 +57,19 @@ def get_category_metrics(
 def compare_category_metrics(
     baseline: dict[str, Any],
     current: dict[str, Any],
+    category_threshold: float = 0.0,
 ) -> dict[str, dict[str, Any]]:
     """
-    Compare category-level attack success rates between
-    baseline and current benchmark reports.
+    Compare category-level attack success rates.
+
+    A category regression is detected only when the ASR
+    increase exceeds the configured threshold.
     """
+
+    if category_threshold < 0:
+        raise ValueError(
+            "Category threshold cannot be negative."
+        )
 
     baseline_categories = get_category_metrics(
         baseline
@@ -111,7 +119,7 @@ def compare_category_metrics(
             "baseline_asr": baseline_asr,
             "current_asr": current_asr,
             "change": change,
-            "regression": change > 0,
+            "regression": change > category_threshold,
             "improvement": change < 0,
         }
 
@@ -191,11 +199,29 @@ def detect_attack_improvements(
 def compare_reports(
     baseline: dict[str, Any],
     current: dict[str, Any],
+    asr_threshold: float = 0.0,
+    risk_threshold: float = 0.0,
+    category_threshold: float = 0.0,
 ) -> dict[str, Any]:
     """
-    Compare two benchmark reports and calculate security
-    regression metrics.
+    Compare two benchmark reports and detect security
+    regressions using configurable thresholds.
     """
+
+    if asr_threshold < 0:
+        raise ValueError(
+            "ASR threshold cannot be negative."
+        )
+
+    if risk_threshold < 0:
+        raise ValueError(
+            "Risk threshold cannot be negative."
+        )
+
+    if category_threshold < 0:
+        raise ValueError(
+            "Category threshold cannot be negative."
+        )
 
     baseline_asr = baseline.get(
         "attack_success_rate",
@@ -227,6 +253,14 @@ def compare_reports(
         - baseline_risk
     )
 
+    asr_regression = (
+        asr_change > asr_threshold
+    )
+
+    risk_regression = (
+        risk_change > risk_threshold
+    )
+
     attack_regressions = (
         detect_attack_regressions(
             baseline,
@@ -245,6 +279,7 @@ def compare_reports(
         compare_category_metrics(
             baseline,
             current,
+            category_threshold=category_threshold,
         )
     )
 
@@ -263,8 +298,8 @@ def compare_reports(
     ]
 
     regression_detected = (
-        asr_change > 0
-        or risk_change > 0
+        asr_regression
+        or risk_regression
         or bool(attack_regressions)
         or bool(category_regressions)
     )
@@ -273,9 +308,14 @@ def compare_reports(
         "baseline_asr": baseline_asr,
         "current_asr": current_asr,
         "asr_change": asr_change,
+        "asr_threshold": asr_threshold,
+        "asr_regression": asr_regression,
         "baseline_risk": baseline_risk,
         "current_risk": current_risk,
         "risk_change": risk_change,
+        "risk_threshold": risk_threshold,
+        "risk_regression": risk_regression,
+        "category_threshold": category_threshold,
         "attack_regressions": attack_regressions,
         "attack_improvements": attack_improvements,
         "category_comparison": category_comparison,

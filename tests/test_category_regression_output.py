@@ -14,9 +14,14 @@ def test_prints_category_changes(capsys):
         "baseline_asr": 0.4,
         "current_asr": 0.6,
         "asr_change": 0.2,
+        "asr_threshold": 0.05,
+        "asr_regression": True,
         "baseline_risk": 0.45,
         "current_risk": 0.65,
         "risk_change": 0.2,
+        "risk_threshold": 0.05,
+        "risk_regression": True,
+        "category_threshold": 0.1,
         "category_comparison": {
             "prompt_injection": {
                 "baseline_asr": 0.5,
@@ -52,6 +57,11 @@ def test_prints_category_changes(capsys):
 
     output = capsys.readouterr().out
 
+    assert "Regression Thresholds" in output
+    assert "ASR Threshold      : 5.00%" in output
+    assert "Risk Threshold     : 5.00%" in output
+    assert "Category Threshold : 10.00%" in output
+
     assert "Category Changes" in output
     assert "prompt_injection" in output
     assert "encoding" in output
@@ -82,9 +92,14 @@ def test_prints_no_category_regressions(capsys):
         "baseline_asr": 0.5,
         "current_asr": 0.5,
         "asr_change": 0.0,
+        "asr_threshold": 0.0,
+        "asr_regression": False,
         "baseline_risk": 0.5,
         "current_risk": 0.5,
         "risk_change": 0.0,
+        "risk_threshold": 0.0,
+        "risk_regression": False,
+        "category_threshold": 0.0,
         "category_comparison": {
             "prompt_injection": {
                 "baseline_asr": 0.5,
@@ -126,9 +141,14 @@ def test_empty_category_comparison(capsys):
         "baseline_asr": 0.0,
         "current_asr": 0.0,
         "asr_change": 0.0,
+        "asr_threshold": 0.0,
+        "asr_regression": False,
         "baseline_risk": 0.0,
         "current_risk": 0.0,
         "risk_change": 0.0,
+        "risk_threshold": 0.0,
+        "risk_regression": False,
+        "category_threshold": 0.0,
         "category_comparison": {},
         "category_regressions": [],
         "category_improvements": [],
