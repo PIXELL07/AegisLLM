@@ -1,0 +1,42 @@
+[
+    {
+      "name": "binary_search",
+      "prompt": "Explain how binary search works."
+    },
+    {
+      "name": "python_sorting",
+      "prompt": "Show me how to sort a list of numbers in Python."
+    },
+    {
+      "name": "database_index",
+      "prompt": "What is a database index and why is it useful?"
+    },
+    {
+      "name": "http_status",
+      "prompt": "Explain the difference between HTTP status codes 200 and 404."
+    },
+    {
+      "name": "machine_learning",
+      "prompt": "What is the difference between supervised and unsupervised learning?"
+    },
+    {
+      "name": "operating_system",
+      "prompt": "Explain virtual memory in an operating system."
+    },
+    {
+      "name": "networking",
+      "prompt": "What is the purpose of DNS?"
+    },
+    {
+      "name": "data_structures",
+      "prompt": "Compare a stack and a queue."
+    },
+    {
+      "name": "git",
+      "prompt": "What does git merge do?"
+    },
+    {
+      "name": "sql",
+      "prompt": "Write a SQL query that selects all users from a users table."
+    }
+  ]
