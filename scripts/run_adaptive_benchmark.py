@@ -14,6 +14,7 @@ from aegis.benchmark.risk import Severity
 from aegis.evaluators.contains import ContainsMatchEvaluator
 from aegis.evaluators.evaluator import ExactMatchEvaluator
 from aegis.targets.ollama import OllamaTarget
+from aegis.taxonomy.owasp import get_security_risk_dict
 
 
 ATTACK_CLASSES = {
@@ -197,6 +198,26 @@ def build_report(
     results,
     metrics,
 ):
+    report_results = []
+
+    for attack, result in zip(
+        attacks,
+        results,
+    ):
+        result_data = asdict(
+            result
+        )
+
+        result_data[
+            "security_risk"
+        ] = get_security_risk_dict(
+            attack.category
+        )
+
+        report_results.append(
+            result_data
+        )
+
     return {
         "model": model_name,
         "evaluator": evaluator_name,
@@ -204,10 +225,7 @@ def build_report(
         "max_attempts": max_attempts,
         "total_attacks": len(attacks),
         "metrics": metrics,
-        "results": [
-            asdict(result)
-            for result in results
-        ],
+        "results": report_results,
     }
 
 

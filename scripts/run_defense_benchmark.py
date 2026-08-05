@@ -17,6 +17,7 @@ from aegis.defenses.runner import DefenseBenchmarkRunner
 from aegis.evaluators.contains import ContainsMatchEvaluator
 from aegis.evaluators.evaluator import ExactMatchEvaluator
 from aegis.targets.ollama import OllamaTarget
+from aegis.taxonomy.owasp import get_security_risk_dict
 
 
 ATTACK_CLASSES = {
@@ -310,6 +311,11 @@ def build_report(
             {
                 "attack": attack.name,
                 "category": attack.category,
+                "security_risk": (
+                    get_security_risk_dict(
+                        attack.category
+                    )
+                ),
                 "baseline": asdict(
                     baseline
                 ),
