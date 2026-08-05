@@ -1,8 +1,10 @@
 import sys
+from types import SimpleNamespace
 
 import pytest
 
 import scripts.run_adaptive_benchmark as cli
+from aegis.adaptive.runner import AdaptiveAttackResult
 
 
 def test_parse_args_defaults(monkeypatch):
@@ -188,3 +190,91 @@ def test_save_report(tmp_path):
         loaded = json.load(file)
 
     assert loaded == report
+
+
+def test_adaptive_report_contains_security_risk():
+    attack = SimpleNamespace(
+        name="instruction_override",
+        category="prompt_injection",
+    )
+
+    result = AdaptiveAttackResult(
+        attack="instruction_override",
+        category="prompt_injection",
+        successful=True,
+        attempts_used=1,
+        successful_attempt=1,
+        successful_strategy="original",
+        final_score=1.0,
+        final_response="AEGIS_TEST_OVERRIDE",
+        attempt_history=[],
+    )
+
+    report = cli.build_report(
+        model_name="test-model",
+        evaluator_name="exact",
+        max_attempts=5,
+        attacks=[attack],
+        results=[result],
+        metrics={},
+    )
+
+    assert len(report["results"]) == 1
+
+    security_risk = report[
+        "results"
+    ][0]["security_risk"]
+
+    assert security_risk is not None
+
+    assert (
+        security_risk["taxonomy"]
+        == "OWASP LLM Top 10"
+    )
+
+    assert (
+        security_risk["risk_id"]
+        == "LLM01"
+    )
+
+    assert (
+        security_risk["name"]
+        == "Prompt Injection"
+    )
+
+    assert "description" in security_risk
+
+
+def test_adaptive_report_unknown_security_risk():
+    attack = SimpleNamespace(
+        name="custom_attack",
+        category="custom_category",
+    )
+
+    result = AdaptiveAttackResult(
+        attack="custom_attack",
+        category="custom_category",
+        successful=False,
+        attempts_used=1,
+        successful_attempt=None,
+        successful_strategy=None,
+        final_score=0.0,
+        final_response="REFUSED",
+        attempt_history=[],
+    )
+
+    report = cli.build_report(
+        model_name="test-model",
+        evaluator_name="exact",
+        max_attempts=5,
+        attacks=[attack],
+        results=[result],
+        metrics={},
+    )
+
+    assert (
+        report["results"][0][
+            "security_risk"
+        ]
+        is None
+    )

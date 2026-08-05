@@ -3,6 +3,7 @@ import sys
 
 import pytest
 
+from types import SimpleNamespace
 import scripts.run_defense_benchmark as cli
 from aegis.defenses.base import NoDefense
 from aegis.defenses.rule_guard import RuleBasedDefense
@@ -454,3 +455,97 @@ def test_save_report(
         )
 
     assert loaded == report
+
+
+def test_defense_report_contains_security_risk():
+    attack = SimpleNamespace(
+        name="instruction_override",
+        category="prompt_injection",
+    )
+
+    baseline = make_result(
+        defense="none",
+        blocked=False,
+        successful=True,
+    )
+
+    defended = make_result(
+        defense="rule_guard",
+        blocked=True,
+        successful=False,
+    )
+
+    report = cli.build_report(
+        model_name="test-model",
+        evaluator_name="exact",
+        defense_name="rule_guard",
+        defense_threshold=1.0,
+        attacks=[attack],
+        baseline_results=[baseline],
+        defended_results=[defended],
+        metrics={},
+        benign_results={},
+    )
+
+    assert len(report["results"]) == 1
+
+    security_risk = report[
+        "results"
+    ][0]["security_risk"]
+
+    assert security_risk is not None
+
+    assert (
+        security_risk["taxonomy"]
+        == "OWASP LLM Top 10"
+    )
+
+    assert (
+        security_risk["risk_id"]
+        == "LLM01"
+    )
+
+    assert (
+        security_risk["name"]
+        == "Prompt Injection"
+    )
+
+    assert "description" in security_risk
+
+
+def test_defense_report_unknown_security_risk():
+    attack = SimpleNamespace(
+        name="custom_attack",
+        category="custom_category",
+    )
+
+    baseline = make_result(
+        defense="none",
+        blocked=False,
+        successful=False,
+    )
+
+    defended = make_result(
+        defense="rule_guard",
+        blocked=False,
+        successful=False,
+    )
+
+    report = cli.build_report(
+        model_name="test-model",
+        evaluator_name="exact",
+        defense_name="rule_guard",
+        defense_threshold=1.0,
+        attacks=[attack],
+        baseline_results=[baseline],
+        defended_results=[defended],
+        metrics={},
+        benign_results={},
+    )
+
+    assert (
+        report["results"][0][
+            "security_risk"
+        ]
+        is None
+    )
