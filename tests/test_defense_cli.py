@@ -1,9 +1,9 @@
 import json
 import sys
+from types import SimpleNamespace
 
 import pytest
 
-from types import SimpleNamespace
 import scripts.run_defense_benchmark as cli
 from aegis.defenses.base import NoDefense
 from aegis.defenses.rule_guard import RuleBasedDefense
@@ -548,4 +548,61 @@ def test_defense_report_unknown_security_risk():
             "security_risk"
         ]
         is None
+    )
+
+
+def test_defense_report_contains_run_metadata():
+    report = cli.build_report(
+        model_name="test-model",
+        evaluator_name="exact",
+        defense_name="rule_guard",
+        defense_threshold=0.75,
+        attacks=[],
+        baseline_results=[],
+        defended_results=[],
+        metrics={},
+        benign_results={},
+    )
+
+    metadata = report[
+        "run_metadata"
+    ]
+
+    assert metadata["run_id"]
+    assert metadata["timestamp"]
+
+    assert (
+        metadata["benchmark_type"]
+        == "defense"
+    )
+
+    assert (
+        metadata["model"]
+        == "test-model"
+    )
+
+    assert (
+        metadata["evaluator"]
+        == "exact"
+    )
+
+    assert (
+        metadata["configuration"][
+            "defense"
+        ]
+        == "rule_guard"
+    )
+
+    assert (
+        metadata["configuration"][
+            "defense_threshold"
+        ]
+        == 0.75
+    )
+
+    assert (
+        metadata["configuration"][
+            "total_attacks"
+        ]
+        == 0
     )

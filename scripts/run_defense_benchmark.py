@@ -16,6 +16,7 @@ from aegis.defenses.rule_guard import RuleBasedDefense
 from aegis.defenses.runner import DefenseBenchmarkRunner
 from aegis.evaluators.contains import ContainsMatchEvaluator
 from aegis.evaluators.evaluator import ExactMatchEvaluator
+from aegis.metadata.run import create_run_metadata
 from aegis.targets.ollama import OllamaTarget
 from aegis.taxonomy.owasp import get_security_risk_dict
 
@@ -295,6 +296,19 @@ def build_report(
     metrics,
     benign_results,
 ):
+    run_metadata = create_run_metadata(
+        benchmark_type="defense",
+        model=model_name,
+        evaluator=evaluator_name,
+        configuration={
+            "defense": defense_name,
+            "defense_threshold": (
+                defense_threshold
+            ),
+            "total_attacks": len(attacks),
+        },
+    )
+
     return {
         "model": model_name,
         "evaluator": evaluator_name,
@@ -302,6 +316,7 @@ def build_report(
         "defense_threshold": (
             defense_threshold
         ),
+        "run_metadata": run_metadata,
         "total_attacks": len(
             attacks
         ),

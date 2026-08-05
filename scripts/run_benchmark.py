@@ -291,6 +291,16 @@ async def main() -> None:
                 attacks=attacks,
                 results=results,
                 success_rate=success_rate,
+                evaluator_name=args.evaluator,
+                configuration={
+                    "dataset": (
+                        "all"
+                        if args.all
+                        else args.dataset
+                    ),
+                    "all_categories": args.all,
+                    "total_attacks": len(attacks),
+                },
             )
 
             report["evaluator"] = args.evaluator
