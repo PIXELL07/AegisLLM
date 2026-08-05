@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from typing import Any
+from aegis.metadata.run import create_run_metadata
 
 from aegis.taxonomy.owasp import (
     get_security_risk_dict,
@@ -12,9 +13,21 @@ def build_report(
     attacks: list[Any],
     results: list[Any],
     success_rate: float,
+    evaluator_name: str = "exact",
+    configuration: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    run_metadata = create_run_metadata(
+        benchmark_type="standard",
+        model=model_name,
+        evaluator=evaluator_name,
+        configuration=configuration or {
+            "total_attacks": len(attacks),
+        },
+    )
+
     return {
         "model": model_name,
+        "run_metadata": run_metadata,
         "total_attacks": len(results),
         "successful_attacks": sum(
             result.successful
@@ -32,9 +45,7 @@ def build_report(
                 ),
                 "successful": result.successful,
                 "score": result.score,
-                "latency_ms": (
-                    result.latency_ms
-                ),
+                "latency_ms": result.latency_ms,
                 "response": result.response,
             }
             for attack, result in zip(

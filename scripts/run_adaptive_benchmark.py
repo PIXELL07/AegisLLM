@@ -13,6 +13,7 @@ from aegis.attacks.prompt_injection import PromptInjectionAttack
 from aegis.benchmark.risk import Severity
 from aegis.evaluators.contains import ContainsMatchEvaluator
 from aegis.evaluators.evaluator import ExactMatchEvaluator
+from aegis.metadata.run import create_run_metadata
 from aegis.targets.ollama import OllamaTarget
 from aegis.taxonomy.owasp import get_security_risk_dict
 
@@ -218,11 +219,22 @@ def build_report(
             result_data
         )
 
+    run_metadata = create_run_metadata(
+        benchmark_type="adaptive",
+        model=model_name,
+        evaluator=evaluator_name,
+        configuration={
+            "max_attempts": max_attempts,
+            "total_attacks": len(attacks),
+        },
+    )
+
     return {
         "model": model_name,
         "evaluator": evaluator_name,
         "adaptive": True,
         "max_attempts": max_attempts,
+        "run_metadata": run_metadata,
         "total_attacks": len(attacks),
         "metrics": metrics,
         "results": report_results,
@@ -451,6 +463,7 @@ async def main() -> None:
         f"Average Attempts to Success : "
         f"{metrics['average_attempts_to_success']:.2f}"
     )
+
     print()
     print("Category Adaptive Results")
     print("-" * 60)
@@ -472,7 +485,7 @@ async def main() -> None:
             f"{category_data['original_asr']:>11.2%}"
             f"{category_data['adaptive_asr']:>12.2%}"
             f"{category_data['adaptive_gain']:>+12.2%}"
-    )
+        )
 
     print()
     print("Successful Strategies")

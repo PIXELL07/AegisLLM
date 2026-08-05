@@ -278,3 +278,50 @@ def test_adaptive_report_unknown_security_risk():
         ]
         is None
     )
+
+
+def test_adaptive_report_contains_run_metadata():
+    report = cli.build_report(
+        model_name="test-model",
+        evaluator_name="contains",
+        max_attempts=7,
+        attacks=[],
+        results=[],
+        metrics={},
+    )
+
+    metadata = report[
+        "run_metadata"
+    ]
+
+    assert metadata["run_id"]
+    assert metadata["timestamp"]
+
+    assert (
+        metadata["benchmark_type"]
+        == "adaptive"
+    )
+
+    assert (
+        metadata["model"]
+        == "test-model"
+    )
+
+    assert (
+        metadata["evaluator"]
+        == "contains"
+    )
+
+    assert (
+        metadata["configuration"][
+            "max_attempts"
+        ]
+        == 7
+    )
+
+    assert (
+        metadata["configuration"][
+            "total_attacks"
+        ]
+        == 0
+    )

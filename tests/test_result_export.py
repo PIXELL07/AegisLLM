@@ -1,7 +1,10 @@
 import json
 from types import SimpleNamespace
 
-from aegis.benchmark.report import build_report, save_report
+from aegis.benchmark.report import (
+    build_report,
+    save_report,
+)
 
 
 def test_build_report():
@@ -95,6 +98,27 @@ def test_build_report():
 
     assert "description" in security_risk
 
+    # Run metadata
+    metadata = report["run_metadata"]
+
+    assert metadata["run_id"]
+    assert metadata["timestamp"]
+
+    assert (
+        metadata["benchmark_type"]
+        == "standard"
+    )
+
+    assert (
+        metadata["model"]
+        == "test-model"
+    )
+
+    assert (
+        metadata["evaluator"]
+        == "exact"
+    )
+
     # Second attack
     assert (
         report["results"][1]["successful"]
@@ -171,4 +195,66 @@ def test_build_report_unknown_taxonomy():
             "security_risk"
         ]
         is None
+    )
+
+
+def test_build_report_contains_run_metadata():
+    attacks = [
+        SimpleNamespace(
+            name="instruction_override",
+            category="prompt_injection",
+        )
+    ]
+
+    results = [
+        SimpleNamespace(
+            successful=True,
+            score=1.0,
+            latency_ms=10.0,
+            response="SUCCESS",
+        )
+    ]
+
+    report = build_report(
+        model_name="test-model",
+        attacks=attacks,
+        results=results,
+        success_rate=1.0,
+        evaluator_name="contains",
+        configuration={
+            "dataset": "test-dataset",
+            "all_categories": False,
+        },
+    )
+
+    metadata = report["run_metadata"]
+
+    assert metadata["run_id"]
+    assert metadata["timestamp"]
+
+    assert (
+        metadata["benchmark_type"]
+        == "standard"
+    )
+
+    assert (
+        metadata["model"]
+        == "test-model"
+    )
+
+    assert (
+        metadata["evaluator"]
+        == "contains"
+    )
+
+    assert (
+        metadata["configuration"]["dataset"]
+        == "test-dataset"
+    )
+
+    assert (
+        metadata["configuration"][
+            "all_categories"
+        ]
+        is False
     )
