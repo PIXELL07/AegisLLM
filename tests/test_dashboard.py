@@ -1,0 +1,95 @@
+import json
+
+from aegis.dashboard.builder import (
+    extract_summary,
+    load_report,
+    save_html,
+)
+
+
+def test_load_report(
+    tmp_path,
+):
+    report = {
+        "model": "test-model",
+        "attack_success_rate": 0.4,
+    }
+
+    path = (
+        tmp_path
+        / "report.json"
+    )
+
+    path.write_text(
+        json.dumps(report),
+        encoding="utf-8",
+    )
+
+    loaded = load_report(
+        str(path)
+    )
+
+    assert loaded == report
+
+
+def test_extract_summary():
+    report = {
+        "model": "test-model",
+        "adaptive": True,
+        "metrics": {
+            "adaptive_asr": 0.55,
+            "total_attacks": 10,
+        },
+        "results": [],
+    }
+
+    summary = extract_summary(
+        report
+    )
+
+    assert (
+        summary["model"]
+        == "test-model"
+    )
+
+    assert (
+        summary["adaptive"]
+        is True
+    )
+
+    assert (
+        summary[
+            "attack_success_rate"
+        ]
+        == 0.55
+    )
+
+    assert (
+        summary[
+            "total_attacks"
+        ]
+        == 10
+    )
+
+
+def test_save_html(
+    tmp_path,
+):
+    output = (
+        tmp_path
+        / "dashboard.html"
+    )
+
+    save_html(
+        "<html></html>",
+        str(output),
+    )
+
+    assert output.exists()
+
+    assert (
+        output.read_text(
+            encoding="utf-8"
+        )
+        == "<html></html>"
+    )
