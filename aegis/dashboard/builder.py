@@ -17,12 +17,77 @@ def extract_summary(report: dict) -> dict:
 
     metrics = report.get("metrics", {})
 
+    results = report.get(
+        "results",
+        [],
+    )
+
+    categories = {}
+
+    for result in results:
+
+        category = result.get(
+            "category",
+            "unknown",
+        )
+
+        if category not in categories:
+
+            categories[category] = {
+                "total": 0,
+                "successful": 0,
+            }
+
+        categories[category]["total"] += 1
+
+        if result.get(
+            "successful",
+            False,
+        ):
+            categories[category][
+                "successful"
+            ] += 1
+
+    category_metrics = {}
+
+    for (
+        category,
+        values,
+    ) in categories.items():
+
+        total = values["total"]
+
+        success = values[
+            "successful"
+        ]
+
+        category_metrics[
+            category
+        ] = {
+            "total": total,
+            "successful": success,
+            "attack_success_rate": (
+                success / total
+                if total
+                else 0.0
+            ),
+        }
+
     return {
-        "model": report.get("model", "Unknown"),
-        "adaptive": report.get("adaptive", False),
+        "model": report.get(
+            "model",
+            "Unknown",
+        ),
+        "adaptive": report.get(
+            "adaptive",
+            False,
+        ),
         "total_attacks": report.get(
             "total_attacks",
-            metrics.get("total_attacks", 0),
+            metrics.get(
+                "total_attacks",
+                len(results),
+            ),
         ),
         "attack_success_rate": report.get(
             "attack_success_rate",
@@ -39,29 +104,14 @@ def extract_summary(report: dict) -> dict:
             0.0,
         ),
         "metrics": metrics,
-        "results": report.get(
-            "results",
-            [],
-        ),
+        "results": results,
+        "categories": category_metrics,
     }
 
-
-def save_html(
-    html: str,
-    output_path: str,
-) -> None:
+def save_html(html: str, output_path: str) -> None:
     """
-    Save dashboard HTML.
+    Save generated dashboard HTML to disk.
     """
-
-    output = Path(output_path)
-
-    output.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    output.write_text(
-        html,
-        encoding="utf-8",
-    )
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(html, encoding="utf-8")

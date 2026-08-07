@@ -93,3 +93,55 @@ def test_save_html(
         )
         == "<html></html>"
     )
+
+def test_category_summary():
+
+    report = {
+        "model": "test-model",
+        "results": [
+            {
+                "category": "prompt_injection",
+                "successful": True,
+            },
+            {
+                "category": "prompt_injection",
+                "successful": False,
+            },
+            {
+                "category": "jailbreak",
+                "successful": True,
+            },
+        ],
+    }
+
+    summary = extract_summary(
+        report,
+    )
+
+    assert (
+        summary["categories"][
+            "prompt_injection"
+        ]["total"]
+        == 2
+    )
+
+    assert (
+        summary["categories"][
+            "prompt_injection"
+        ]["successful"]
+        == 1
+    )
+
+    assert (
+        summary["categories"][
+            "prompt_injection"
+        ]["attack_success_rate"]
+        == 0.5
+    )
+
+    assert (
+        summary["categories"][
+            "jailbreak"
+        ]["attack_success_rate"]
+        == 1.0
+    )    
