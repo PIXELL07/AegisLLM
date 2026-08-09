@@ -101,9 +101,11 @@ table {{
 
 th,
 td {{
-    padding:12px 16px;
+    padding:14px 16px;
     border-bottom:1px solid #333;
-    text-align:left;
+    text-align:left !important;
+    vertical-align:top !important;
+    line-height:1.5;
 }}
 
 th {{
@@ -112,27 +114,40 @@ th {{
 
 th:nth-child(1),
 td:nth-child(1) {{
-    width:28%;
+    width:18%;
 }}
 
 th:nth-child(2),
 td:nth-child(2) {{
-    width:22%;
+    width:16%;
 }}
 
 th:nth-child(3),
 td:nth-child(3) {{
-    width:12%;
+    width:10%;
 }}
 
 th:nth-child(4),
 td:nth-child(4) {{
-    width:20%;
+    width:14%;
 }}
 
 th:nth-child(5),
 td:nth-child(5) {{
-    width:18%;
+    width:12%;
+}}
+
+th:nth-child(6),
+td:nth-child(6) {{
+    width:30%;
+}}
+
+.response {{
+    text-align:left !important;
+    vertical-align:top !important;
+    word-break:break-word;
+    overflow-wrap:anywhere;
+    white-space:normal;
 }}
 
 .success {{
@@ -437,6 +452,7 @@ Risk Level: {risk_level}
     <th>Score</th>
     <th>Latency</th>
     <th>Successful</th>
+    <th>Response</th>
 </tr>
 
 </thead>
@@ -476,6 +492,10 @@ Risk Level: {risk_level}
                     else "No"
                 }
 
+            </td>
+
+            <td class="response">
+                {result.get("response", "N/A")}
             </td>
 
         </tr>
