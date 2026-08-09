@@ -556,3 +556,29 @@ def test_dashboard_export_links():
     assert "Download JSON" in html
     assert "Download CSV" in html
     assert "test_attack" in html
+
+def test_dashboard_benchmark_metadata():
+    from aegis.dashboard.templates import (
+        build_dashboard_html,
+    )
+
+    summary = {
+        "model": "test-model",
+        "adaptive": True,
+        "total_attacks": 5,
+        "successful_attacks": 1,
+        "attack_success_rate": 0.2,
+        "average_latency_ms": 500.0,
+        "risk_score": 0.5,
+        "results": [],
+        "categories": {},
+    }
+
+    html = build_dashboard_html(summary)
+
+    assert "Benchmark Information" in html
+    assert "Adaptive Mode" in html
+    assert "Enabled" in html
+    assert "Total Attacks" in html
+    assert "Generated At" in html
+    assert "test-model" in html

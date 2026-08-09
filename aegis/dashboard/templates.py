@@ -177,6 +177,30 @@ body {{
     background:#059669;
 }}
 
+.benchmark-metadata {{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:16px;
+    margin-bottom:20px;
+}}
+
+.metadata-item {{
+    background:#111827;
+    padding:16px;
+    border-radius:8px;
+}}
+
+.metadata-label {{
+    font-size:14px;
+    color:#9ca3af;
+    margin-bottom:6px;
+}}
+
+.metadata-value {{
+    font-size:18px;
+    font-weight:bold;
+}}
+
 .summary-grid {{
     display:grid;
     grid-template-columns:repeat(3, 1fr);
@@ -368,6 +392,10 @@ td:nth-child(6) {{
         grid-template-columns:repeat(2, minmax(0, 1fr));
     }}
 
+    .benchmark-metadata {{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+    }}
+
     .card {{
         padding:18px;
     }}
@@ -401,6 +429,10 @@ td:nth-child(6) {{
     .summary-grid {{
         grid-template-columns:1fr;
     }}
+    .benchmark-metadata {{
+        grid-template-columns:1fr;
+    }}
+
 
     .card {{
         padding:16px;
@@ -464,6 +496,52 @@ td:nth-child(6) {{
 
     Risk Score:
     {summary["risk_score"]:.2f}
+
+</div>
+
+<div class="card">
+
+<h2>Benchmark Information</h2>
+
+<div class="benchmark-metadata">
+
+    <div class="metadata-item">
+        <div class="metadata-label">
+            Model
+        </div>
+        <div class="metadata-value">
+            {summary["model"]}
+        </div>
+    </div>
+
+    <div class="metadata-item">
+        <div class="metadata-label">
+            Adaptive Mode
+        </div>
+        <div class="metadata-value">
+            {"Enabled" if summary["adaptive"] else "Disabled"}
+        </div>
+    </div>
+
+    <div class="metadata-item">
+        <div class="metadata-label">
+            Total Attacks
+        </div>
+        <div class="metadata-value">
+            {summary["total_attacks"]}
+        </div>
+    </div>
+
+    <div class="metadata-item">
+        <div class="metadata-label">
+            Generated At
+        </div>
+        <div class="metadata-value">
+            {generated_at}
+        </div>
+    </div>
+
+</div>
 
 </div>
 
