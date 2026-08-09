@@ -105,6 +105,42 @@ body {{
     margin:40px;
 }}
 
+".dashboard-nav {{
+    position:sticky;
+    top:0;
+    z-index:1000;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    padding:12px;
+    margin-bottom:20px;
+    background:#1f2937;
+    border:1px solid #374151;
+    border-radius:10px;
+}}
+
+.dashboard-nav a {{
+    padding:8px 14px;
+    border-radius:6px;
+    background:#111827;
+    color:white;
+    text-decoration:none;
+    font-size:14px;
+    font-weight:bold;
+}}
+
+.dashboard-nav a:hover {{
+    background:#2563eb;
+}}
+
+html {{
+    scroll-behavior:smooth;
+}}
+
+h2 {{
+    scroll-margin-top:80px;
+}}
+
 .card {{
     background:#1f2937;
     padding:20px;
@@ -639,6 +675,30 @@ td:nth-child(6) {{
 
 <body>
 
+<nav class="dashboard-nav">
+
+    <a href="#summary">
+        Summary
+    </a>
+
+    <a href="#category-analysis">
+        Categories
+    </a>
+
+    <a href="#latency-analysis">
+        Latency
+    </a>
+
+    <a href="#score-analysis">
+        Scores
+    </a>
+
+    <a href="#attack-results">
+        Attack Results
+    </a>
+
+</nav>
+
 <h1>AegisLLM Security Dashboard</h1>
 
 
@@ -737,7 +797,7 @@ td:nth-child(6) {{
 
 <div class="card">
 
-<h2>Dashboard Summary</h2>
+<h2 id="summary">Dashboard Summary</h2>
 
 <div class="summary-grid">
 
@@ -914,7 +974,7 @@ Risk Level: {risk_level}
 
 <div class="card">
 
-<h2>Attack Success Rate by Category</h2>
+<h2 id="category-analysis">Attack Success Rate by Category</h2>
 
 <div class="chart-controls">
 
@@ -995,7 +1055,7 @@ Risk Level: {risk_level}
 
 <div class="card">
 
-<h2>Attack Latency</h2>
+<h2 id="latency-analysis">Attack Latency</h2>
 
 <div class="chart-controls">
 
@@ -1086,7 +1146,7 @@ Risk Level: {risk_level}
 
 <div class="card">
 
-<h2>Attack Score</h2>
+<h2 id="score-analysis">Attack Score</h2>
 
 <div class="chart-controls">
 
@@ -1169,7 +1229,7 @@ Risk Level: {risk_level}
 
 <div class="card">
 
-<h2>Attack Results</h2>
+<h2 id="attack-results">Attack Results</h2>
 
 
 <div class="search-controls">
