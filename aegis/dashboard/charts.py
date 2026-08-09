@@ -17,6 +17,14 @@ def build_category_chart_data(
                 "attack_success_rate",
                 0.0,
             ),
+            "total": values.get(
+                "total",
+                0,
+            ),
+            "successful": values.get(
+                "successful",
+                0,
+            ),
         }
         for category, values in categories.items()
     ]

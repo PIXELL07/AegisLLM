@@ -238,6 +238,42 @@ body {{
     border-radius:8px;
 }}
 
+.chart-controls {{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}}
+
+.chart-control-button {{
+    padding:8px 14px;
+    border:1px solid #4b5563;
+    border-radius:6px;
+    background:#111827;
+    color:white;
+    cursor:pointer;
+    font-weight:bold;
+}}
+
+.chart-control-button:hover {{
+    background:#374151;
+}}
+
+.chart-control-button.active {{
+    background:#2563eb;
+    border-color:#2563eb;
+}}
+
+.chart-select {{
+    padding:8px 12px;
+    border:1px solid #4b5563;
+    border-radius:6px;
+    background:#111827;
+    color:white;
+    cursor:pointer;
+}}
+
 table {{
     width:100%;
     border-collapse:collapse;
@@ -429,10 +465,10 @@ td:nth-child(6) {{
     .summary-grid {{
         grid-template-columns:1fr;
     }}
+
     .benchmark-metadata {{
         grid-template-columns:1fr;
     }}
-
 
     .card {{
         padding:16px;
@@ -471,6 +507,17 @@ td:nth-child(6) {{
         margin-right:0;
     }}
 
+    .chart-controls {{
+        align-items:stretch;
+        flex-direction:column;
+    }}
+
+    .chart-control-button,
+    .chart-select {{
+        width:100%;
+        box-sizing:border-box;
+    }}
+
     .risk-banner {{
         font-size:18px;
         padding:16px;
@@ -499,6 +546,7 @@ td:nth-child(6) {{
 
 </div>
 
+
 <div class="card">
 
 <h2>Benchmark Information</h2>
@@ -506,39 +554,54 @@ td:nth-child(6) {{
 <div class="benchmark-metadata">
 
     <div class="metadata-item">
+
         <div class="metadata-label">
             Model
         </div>
+
         <div class="metadata-value">
             {summary["model"]}
         </div>
+
     </div>
 
+
     <div class="metadata-item">
+
         <div class="metadata-label">
             Adaptive Mode
         </div>
+
         <div class="metadata-value">
             {"Enabled" if summary["adaptive"] else "Disabled"}
         </div>
+
     </div>
 
+
     <div class="metadata-item">
+
         <div class="metadata-label">
             Total Attacks
         </div>
+
         <div class="metadata-value">
             {summary["total_attacks"]}
         </div>
+
     </div>
 
+
     <div class="metadata-item">
+
         <div class="metadata-label">
             Generated At
         </div>
+
         <div class="metadata-value">
             {generated_at}
         </div>
+
     </div>
 
 </div>
@@ -745,22 +808,80 @@ Risk Level: {risk_level}
 
 <h2>Attack Success Rate by Category</h2>
 
+<div class="chart-controls">
+
+    <span>
+        Category View:
+    </span>
+
+    <button
+        id="categoryRateButton"
+        class="chart-control-button active"
+        onclick="toggleCategoryView('rate')"
+    >
+        Percentage
+    </button>
+
+    <button
+        id="categoryCountButton"
+        class="chart-control-button"
+        onclick="toggleCategoryView('count')"
+    >
+        Count
+    </button>
+
+</div>
+
+
+<div id="categoryChart">
+
 {
     (
         "".join(
             f"""
-            <div class="chart-row">
+            <div
+                class="chart-row"
+                data-rate="{item["attack_success_rate"]}"
+                data-total="{item["total"]}"
+                data-successful="{item["successful"]}"
+            >
 
                 <div class="chart-label">
-                    <span>{item["category"]}</span>
-                    <span>{item["attack_success_rate"]:.2%}</span>
+
+                    <span>
+                        {item["category"]}
+                    </span>
+
+                    <span
+                        class="category-value"
+                        data-rate="{item["attack_success_rate"]}"
+                        data-total="{item["total"]}"
+                        data-successful="{item["successful"]}"
+                    >
+                        {item["attack_success_rate"]:.2%}
+                    </span>
+
                 </div>
 
                 <div class="chart-background">
 
                     <div
-                        class="chart-bar"
+                        class="chart-bar category-bar"
                         style="width:{item["attack_success_rate"] * 100}%"
+                        data-rate-width="{item["attack_success_rate"] * 100}"
+                        data-count-width="{
+                            (
+                                item["successful"]
+                                / max(
+                                    (
+                                        category_item["total"]
+                                        for category_item in chart_data
+                                    ),
+                                    default=1,
+                                )
+                                * 100
+                            )
+                        }"
                     ></div>
 
                 </div>
@@ -780,20 +901,63 @@ Risk Level: {risk_level}
 
 </div>
 
+</div>
+
 
 <div class="card">
 
 <h2>Attack Latency</h2>
 
+<div class="chart-controls">
+
+    <label for="latencySort">
+        Latency Sort:
+    </label>
+
+    <select
+        id="latencySort"
+        class="chart-select"
+        onchange="sortLatency(this.value)"
+    >
+
+        <option value="original">
+            Original Order
+        </option>
+
+        <option value="ascending">
+            Lowest First
+        </option>
+
+        <option value="descending">
+            Highest First
+        </option>
+
+    </select>
+
+</div>
+
+
+<div id="latencyChart">
+
 {
     (
         "".join(
             f"""
-            <div class="latency-row">
+            <div
+                class="latency-row"
+                data-latency="{item["latency_ms"]}"
+            >
 
                 <div class="latency-label">
-                    <span>{item["attack"]}</span>
-                    <span>{item["latency_ms"]:.2f} ms</span>
+
+                    <span>
+                        {item["attack"]}
+                    </span>
+
+                    <span>
+                        {item["latency_ms"]:.2f} ms
+                    </span>
+
                 </div>
 
                 <div class="latency-background">
@@ -828,20 +992,63 @@ Risk Level: {risk_level}
 
 </div>
 
+</div>
+
 
 <div class="card">
 
 <h2>Attack Score</h2>
 
+<div class="chart-controls">
+
+    <label for="scoreSort">
+        Score Sort:
+    </label>
+
+    <select
+        id="scoreSort"
+        class="chart-select"
+        onchange="sortScores(this.value)"
+    >
+
+        <option value="original">
+            Original Order
+        </option>
+
+        <option value="ascending">
+            Lowest First
+        </option>
+
+        <option value="descending">
+            Highest First
+        </option>
+
+    </select>
+
+</div>
+
+
+<div id="scoreChart">
+
 {
     (
         "".join(
             f"""
-            <div class="score-row">
+            <div
+                class="score-row"
+                data-score="{item["score"]}"
+            >
 
                 <div class="score-label">
-                    <span>{item["attack"]}</span>
-                    <span>{item["score"]:.2f}</span>
+
+                    <span>
+                        {item["attack"]}
+                    </span>
+
+                    <span>
+                        {item["score"]:.2f}
+                    </span>
+
                 </div>
 
                 <div class="score-background">
@@ -865,6 +1072,8 @@ Risk Level: {risk_level}
         """
     )
 }
+
+</div>
 
 </div>
 
@@ -959,6 +1168,162 @@ Risk Level: {risk_level}
 }
 
 </div>
+
+
+<script>
+
+function toggleCategoryView(view) {{
+
+    const rows = document.querySelectorAll(
+        "#categoryChart .chart-row"
+    );
+
+    const rateButton = document.getElementById(
+        "categoryRateButton"
+    );
+
+    const countButton = document.getElementById(
+        "categoryCountButton"
+    );
+
+    rows.forEach(function(row) {{
+
+        const valueElement = row.querySelector(
+            ".category-value"
+        );
+
+        const barElement = row.querySelector(
+            ".category-bar"
+        );
+
+        const rate = parseFloat(
+            row.dataset.rate
+        );
+
+        const total = parseFloat(
+            row.dataset.total
+        );
+
+        const successful = parseFloat(
+            row.dataset.successful
+        );
+
+        if (view === "count") {{
+
+            valueElement.textContent =
+                successful + " / " + total;
+
+            const width =
+                total > 0
+                    ? (successful / total) * 100
+                    : 0;
+
+            barElement.style.width =
+                width + "%";
+
+        }} else {{
+
+            valueElement.textContent =
+                (rate * 100).toFixed(2) + "%";
+
+            barElement.style.width =
+                (rate * 100) + "%";
+        }}
+
+    }});
+
+    rateButton.classList.toggle(
+        "active",
+        view === "rate"
+    );
+
+    countButton.classList.toggle(
+        "active",
+        view === "count"
+    );
+}}
+
+
+function sortLatency(order) {{
+
+    const container = document.getElementById(
+        "latencyChart"
+    );
+
+    const rows = Array.from(
+        container.querySelectorAll(
+            ".latency-row"
+        )
+    );
+
+    if (order === "ascending") {{
+
+        rows.sort(function(a, b) {{
+            return (
+                parseFloat(a.dataset.latency)
+                -
+                parseFloat(b.dataset.latency)
+            );
+        }});
+
+    }} else if (order === "descending") {{
+
+        rows.sort(function(a, b) {{
+            return (
+                parseFloat(b.dataset.latency)
+                -
+                parseFloat(a.dataset.latency)
+            );
+        }});
+
+    }}
+
+    rows.forEach(function(row) {{
+        container.appendChild(row);
+    }});
+}}
+
+
+function sortScores(order) {{
+
+    const container = document.getElementById(
+        "scoreChart"
+    );
+
+    const rows = Array.from(
+        container.querySelectorAll(
+            ".score-row"
+        )
+    );
+
+    if (order === "ascending") {{
+
+        rows.sort(function(a, b) {{
+            return (
+                parseFloat(a.dataset.score)
+                -
+                parseFloat(b.dataset.score)
+            );
+        }});
+
+    }} else if (order === "descending") {{
+
+        rows.sort(function(a, b) {{
+            return (
+                parseFloat(b.dataset.score)
+                -
+                parseFloat(a.dataset.score)
+            );
+        }});
+
+    }}
+
+    rows.forEach(function(row) {{
+        container.appendChild(row);
+    }});
+}}
+
+</script>
 
 
 </body>
