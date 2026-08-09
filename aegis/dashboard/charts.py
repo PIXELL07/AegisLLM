@@ -20,3 +20,19 @@ def build_category_chart_data(
         }
         for category, values in categories.items()
     ]
+
+
+def get_risk_level(
+    risk_score: float,
+) -> str:
+    """
+    Convert a risk score into a simple risk level.
+    """
+
+    if risk_score < 0.33:
+        return "LOW"
+
+    if risk_score < 0.66:
+        return "MEDIUM"
+
+    return "HIGH"

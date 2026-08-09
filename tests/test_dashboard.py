@@ -8,6 +8,7 @@ from aegis.dashboard.builder import (
 
 from aegis.dashboard.charts import (
     build_category_chart_data,
+    get_risk_level,
 )
 
 
@@ -183,3 +184,21 @@ def test_build_category_chart_data():
             "attack_success_rate": 0.5,
         },
     ]
+
+
+def test_get_risk_level():
+
+    assert (
+        get_risk_level(0.2)
+        == "LOW"
+    )
+
+    assert (
+        get_risk_level(0.5)
+        == "MEDIUM"
+    )
+
+    assert (
+        get_risk_level(0.8)
+        == "HIGH"
+    )
