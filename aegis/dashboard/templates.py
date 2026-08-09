@@ -1,3 +1,5 @@
+import json
+
 from aegis.dashboard.charts import (
     build_category_chart_data,
     get_risk_level,
@@ -17,6 +19,11 @@ def build_dashboard_html(
 
     risk_level = get_risk_level(
         summary["risk_score"],
+    )
+
+    summary_json = json.dumps(
+        summary,
+        indent=2,
     )
 
     return f"""
@@ -55,6 +62,17 @@ body {{
     font-size:24px;
     font-weight:bold;
     margin-top:10px;
+}}
+
+.download-button {{
+    display:inline-block;
+    padding:10px 16px;
+    background:#2563eb;
+    color:white;
+    text-decoration:none;
+    border-radius:6px;
+    font-weight:bold;
+    margin-bottom:20px;
 }}
 
 table {{
@@ -119,6 +137,15 @@ td:last-child {{
 <body>
 
 <h1>AegisLLM Security Dashboard</h1>
+
+
+<a
+    class="download-button"
+    href="data:application/json;charset=utf-8,{summary_json}"
+    download="dashboard-summary.json"
+>
+    Download JSON
+</a>
 
 
 <div class="card">
