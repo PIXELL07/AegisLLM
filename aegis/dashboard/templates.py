@@ -183,6 +183,28 @@ td:last-child {{
 
 <div class="card">
 
+<h2>Successful Attacks</h2>
+
+<div class="metric">
+{summary["successful_attacks"]}
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>Average Latency</h2>
+
+<div class="metric">
+{summary["average_latency_ms"]:.2f} ms
+</div>
+
+</div>
+
+
+<div class="card">
+
 <h2>Risk Score</h2>
 
 <div class="metric">

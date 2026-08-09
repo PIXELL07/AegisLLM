@@ -6,7 +6,11 @@ def load_report(path: str) -> dict:
     """
     Load a benchmark report from JSON.
     """
-    with open(path, "r", encoding="utf-8") as file:
+    with open(
+        path,
+        "r",
+        encoding="utf-8",
+    ) as file:
         return json.load(file)
 
 
@@ -15,7 +19,10 @@ def extract_summary(report: dict) -> dict:
     Extract the dashboard summary from a benchmark report.
     """
 
-    metrics = report.get("metrics", {})
+    metrics = report.get(
+        "metrics",
+        {},
+    )
 
     results = report.get(
         "results",
@@ -73,6 +80,30 @@ def extract_summary(report: dict) -> dict:
             ),
         }
 
+    successful_attacks = report.get(
+        "successful_attacks",
+        sum(
+            1
+            for result in results
+            if result.get(
+                "successful",
+                False,
+            )
+        ),
+    )
+
+    latencies = [
+        result["latency_ms"]
+        for result in results
+        if "latency_ms" in result
+    ]
+
+    average_latency_ms = (
+        sum(latencies) / len(latencies)
+        if latencies
+        else 0.0
+    )
+
     return {
         "model": report.get(
             "model",
@@ -89,6 +120,7 @@ def extract_summary(report: dict) -> dict:
                 len(results),
             ),
         ),
+        "successful_attacks": successful_attacks,
         "attack_success_rate": report.get(
             "attack_success_rate",
             metrics.get(
@@ -99,6 +131,7 @@ def extract_summary(report: dict) -> dict:
                 ),
             ),
         ),
+        "average_latency_ms": average_latency_ms,
         "risk_score": report.get(
             "risk_score",
             0.0,
@@ -108,10 +141,20 @@ def extract_summary(report: dict) -> dict:
         "categories": category_metrics,
     }
 
-def save_html(html: str, output_path: str) -> None:
+
+def save_html(
+    html: str,
+    output_path: str,
+) -> None:
     """
     Save generated dashboard HTML to disk.
     """
     path = Path(output_path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(html, encoding="utf-8")
+    path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    path.write_text(
+        html,
+        encoding="utf-8",
+    )
