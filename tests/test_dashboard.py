@@ -825,3 +825,66 @@ def test_dashboard_attack_filters():
     assert "clearAttackFilters" in html
     assert 'data-category="prompt_injection"' in html
     assert 'data-category="jailbreak"' in html
+
+def test_dashboard_attack_search():
+    from aegis.dashboard.templates import (
+        build_dashboard_html,
+    )
+
+    summary = {
+        "model": "test-model",
+        "adaptive": False,
+        "total_attacks": 2,
+        "successful_attacks": 1,
+        "attack_success_rate": 0.5,
+        "average_latency_ms": 150.0,
+        "risk_score": 0.5,
+        "results": [
+            {
+                "attack": "prompt_attack",
+                "category": "prompt_injection",
+                "successful": True,
+                "score": 1.0,
+                "latency_ms": 100.0,
+                "response": "unsafe response",
+            },
+            {
+                "attack": "jailbreak_attack",
+                "category": "jailbreak",
+                "successful": False,
+                "score": 0.0,
+                "latency_ms": 200.0,
+                "response": "safe response",
+            },
+        ],
+        "categories": {
+            "prompt_injection": {
+                "total": 1,
+                "successful": 1,
+                "attack_success_rate": 1.0,
+            },
+            "jailbreak": {
+                "total": 1,
+                "successful": 0,
+                "attack_success_rate": 0.0,
+            },
+        },
+    }
+
+    html = build_dashboard_html(
+        summary,
+    )
+
+    assert "Search" in html
+    assert "attackSearch" in html
+    assert (
+        "Search attack, category, or response..."
+        in html
+    )
+    assert "Clear Search" in html
+    assert "clearAttackSearch" in html
+    assert "filterAttackResults" in html
+    assert "prompt_attack" in html
+    assert "jailbreak_attack" in html
+    assert "unsafe response" in html
+    assert "safe response" in html

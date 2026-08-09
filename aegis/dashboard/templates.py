@@ -292,7 +292,7 @@ body {{
     align-items:center;
     gap:10px;
     flex-wrap:wrap;
-    margin-bottom:20px;
+    margin-bottom:15px;
 }}
 
 .filter-label {{
@@ -327,6 +327,46 @@ body {{
     margin-bottom:15px;
     color:#9ca3af;
     font-size:14px;
+}}
+
+.search-controls {{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:15px;
+}}
+
+.search-input {{
+    flex:1;
+    padding:10px 12px;
+    border:1px solid #4b5563;
+    border-radius:6px;
+    background:#111827;
+    color:white;
+    font-size:15px;
+}}
+
+.search-input::placeholder {{
+    color:#9ca3af;
+}}
+
+.search-input:focus {{
+    outline:none;
+    border-color:#2563eb;
+}}
+
+.search-button {{
+    padding:10px 16px;
+    border:1px solid #2563eb;
+    border-radius:6px;
+    background:#2563eb;
+    color:white;
+    cursor:pointer;
+    font-weight:bold;
+}}
+
+.search-button:hover {{
+    background:#1d4ed8;
 }}
 
 .no-filter-results {{
@@ -480,8 +520,6 @@ td:nth-child(6) {{
 }}
 
 
-/* Responsive dashboard layout */
-
 @media (max-width:900px) {{
 
     body {{
@@ -572,7 +610,8 @@ td:nth-child(6) {{
     }}
 
     .chart-controls,
-    .filter-controls {{
+    .filter-controls,
+    .search-controls {{
         align-items:stretch;
         flex-direction:column;
     }}
@@ -580,7 +619,9 @@ td:nth-child(6) {{
     .chart-control-button,
     .chart-select,
     .filter-select,
-    .filter-button {{
+    .filter-button,
+    .search-input,
+    .search-button {{
         width:100%;
         box-sizing:border-box;
     }}
@@ -919,9 +960,7 @@ Risk Level: {risk_level}
                         {item["category"]}
                     </span>
 
-                    <span
-                        class="category-value"
-                    >
+                    <span class="category-value">
                         {item["attack_success_rate"]:.2%}
                     </span>
 
@@ -1132,6 +1171,31 @@ Risk Level: {risk_level}
 
 <h2>Attack Results</h2>
 
+
+<div class="search-controls">
+
+    <label for="attackSearch">
+        Search
+    </label>
+
+    <input
+        id="attackSearch"
+        class="search-input"
+        type="search"
+        placeholder="Search attack, category, or response..."
+        oninput="filterAttackResults()"
+    >
+
+    <button
+        class="search-button"
+        onclick="clearAttackSearch()"
+    >
+        Clear Search
+    </button>
+
+</div>
+
+
 <div class="filter-controls">
 
     <span class="filter-label">
@@ -1243,6 +1307,15 @@ Risk Level: {risk_level}
                         if result.get("successful", False)
                         else "false"
                     }"
+                    data-search="{
+                        (
+                            str(result.get("attack", "unknown"))
+                            + " "
+                            + str(result.get("category", "unknown"))
+                            + " "
+                            + str(result.get("response", "N/A"))
+                        ).lower()
+                    }"
                 >
 
                     <td>
@@ -1302,6 +1375,7 @@ Risk Level: {risk_level}
         """
     )
 }
+
 
 <div
     id="noFilterResults"
@@ -1479,6 +1553,18 @@ function filterAttackResults() {{
             "resultFilter"
         ).value;
 
+    const searchInput =
+        document.getElementById(
+            "attackSearch"
+        );
+
+    const searchTerm =
+        searchInput
+            ? searchInput.value
+                .trim()
+                .toLowerCase()
+            : "";
+
     const rows = document.querySelectorAll(
         "#attackResultsBody tr"
     );
@@ -1492,6 +1578,9 @@ function filterAttackResults() {{
 
         const successful =
             row.dataset.successful === "true";
+
+        const searchableText =
+            row.dataset.search || "";
 
         const categoryMatches =
             categoryFilter === "all"
@@ -1511,9 +1600,19 @@ function filterAttackResults() {{
                 && !successful
             );
 
+        const searchMatches =
+            searchTerm === ""
+            ||
+            searchableText.includes(
+                searchTerm
+            );
+
         const visible =
             categoryMatches
-            && resultMatches;
+            &&
+            resultMatches
+            &&
+            searchMatches;
 
         row.style.display =
             visible
@@ -1556,7 +1655,35 @@ function clearAttackFilters() {{
         "resultFilter"
     ).value = "all";
 
+    const searchInput =
+        document.getElementById(
+            "attackSearch"
+        );
+
+    if (searchInput) {{
+        searchInput.value = "";
+    }}
+
     filterAttackResults();
+}}
+
+
+function clearAttackSearch() {{
+
+    const searchInput =
+        document.getElementById(
+            "attackSearch"
+        );
+
+    if (searchInput) {{
+        searchInput.value = "";
+    }}
+
+    filterAttackResults();
+
+    if (searchInput) {{
+        searchInput.focus();
+    }}
 }}
 
 </script>
