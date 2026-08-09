@@ -93,6 +93,34 @@ body {{
     margin-bottom:20px;
 }}
 
+.summary-grid {{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:16px;
+}}
+
+.summary-item {{
+    background:#111827;
+    padding:18px;
+    border-radius:8px;
+}}
+
+.summary-label {{
+    font-size:15px;
+    color:#9ca3af;
+    margin-bottom:8px;
+}}
+
+.summary-value {{
+    font-size:24px;
+    font-weight:bold;
+    color:#4ade80;
+}}
+
+.summary-value.model {{
+    font-size:20px;
+}}
+
 table {{
     width:100%;
     border-collapse:collapse;
@@ -233,6 +261,14 @@ td:nth-child(6) {{
     overflow-x:auto;
 }}
 
+@media (max-width:900px) {{
+
+    .summary-grid {{
+        grid-template-columns:1fr;
+    }}
+
+}}
+
 </style>
 
 </head>
@@ -249,6 +285,94 @@ td:nth-child(6) {{
 >
     Download JSON
 </a>
+
+
+<div class="card">
+
+<h2>Dashboard Summary</h2>
+
+<div class="summary-grid">
+
+    <div class="summary-item">
+
+        <div class="summary-label">
+            Model
+        </div>
+
+        <div class="summary-value model">
+            {summary["model"]}
+        </div>
+
+    </div>
+
+
+    <div class="summary-item">
+
+        <div class="summary-label">
+            Total Attacks
+        </div>
+
+        <div class="summary-value">
+            {summary["total_attacks"]}
+        </div>
+
+    </div>
+
+
+    <div class="summary-item">
+
+        <div class="summary-label">
+            Successful Attacks
+        </div>
+
+        <div class="summary-value">
+            {summary["successful_attacks"]}
+        </div>
+
+    </div>
+
+
+    <div class="summary-item">
+
+        <div class="summary-label">
+            Attack Success Rate
+        </div>
+
+        <div class="summary-value">
+            {summary["attack_success_rate"]:.2%}
+        </div>
+
+    </div>
+
+
+    <div class="summary-item">
+
+        <div class="summary-label">
+            Average Latency
+        </div>
+
+        <div class="summary-value">
+            {summary["average_latency_ms"]:.2f} ms
+        </div>
+
+    </div>
+
+
+    <div class="summary-item">
+
+        <div class="summary-label">
+            Risk Level
+        </div>
+
+        <div class="summary-value">
+            {risk_level}
+        </div>
+
+    </div>
+
+</div>
+
+</div>
 
 
 <div class="card">
