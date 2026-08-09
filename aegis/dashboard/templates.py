@@ -31,6 +31,8 @@ def build_dashboard_html(
         summary["risk_score"],
     )
 
+    risk_class = risk_level.lower()
+
     summary_json = json.dumps(
         summary,
         indent=2,
@@ -80,6 +82,18 @@ body {{
     font-size:24px;
     font-weight:bold;
     margin-top:10px;
+}}
+
+.risk-level.low {{
+    color:#4ade80;
+}}
+
+.risk-level.medium {{
+    color:#facc15;
+}}
+
+.risk-level.high {{
+    color:#ff6b6b;
 }}
 
 .download-button {{
@@ -438,7 +452,7 @@ td:nth-child(6) {{
 {summary["risk_score"]:.2f}
 </div>
 
-<div class="risk-level">
+<div class="risk-level {risk_class}">
 Risk Level: {risk_level}
 </div>
 

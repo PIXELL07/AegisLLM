@@ -362,3 +362,4 @@ def test_dashboard_summary_section():
     assert "20.00%" in html
     assert "500.00 ms" in html
     assert "MEDIUM" in html
+    assert "risk-level medium" in html
