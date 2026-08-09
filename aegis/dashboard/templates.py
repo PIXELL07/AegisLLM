@@ -59,6 +59,11 @@ def build_dashboard_html(
 
 <meta charset="UTF-8">
 
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
 <title>AegisLLM Dashboard</title>
 
 <style>
@@ -290,12 +295,90 @@ td:nth-child(6) {{
 
 .results-table {{
     overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
 }}
+
+
+/* Responsive dashboard layout */
 
 @media (max-width:900px) {{
 
+    body {{
+        margin:20px;
+    }}
+
+    .summary-grid {{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+    }}
+
+    .card {{
+        padding:18px;
+    }}
+
+    table {{
+        font-size:14px;
+    }}
+
+    th,
+    td {{
+        padding:10px 12px;
+    }}
+
+}}
+
+
+@media (max-width:600px) {{
+
+    body {{
+        margin:12px;
+    }}
+
+    h1 {{
+        font-size:28px;
+    }}
+
+    h2 {{
+        font-size:22px;
+    }}
+
     .summary-grid {{
         grid-template-columns:1fr;
+    }}
+
+    .card {{
+        padding:16px;
+        margin-bottom:14px;
+    }}
+
+    .metric {{
+        font-size:26px;
+    }}
+
+    .results-table {{
+        overflow-x:auto;
+        -webkit-overflow-scrolling:touch;
+    }}
+
+    table {{
+        min-width:700px;
+    }}
+
+    th,
+    td {{
+        padding:10px;
+        white-space:nowrap;
+    }}
+
+    .response {{
+        white-space:normal;
+        word-break:break-word;
+        overflow-wrap:anywhere;
+    }}
+
+    .download-button {{
+        width:100%;
+        box-sizing:border-box;
+        text-align:center;
     }}
 
 }}
