@@ -3,6 +3,7 @@ import json
 from aegis.dashboard.charts import (
     build_category_chart_data,
     build_latency_chart_data,
+    build_score_chart_data,
     get_risk_level,
 )
 
@@ -19,6 +20,10 @@ def build_dashboard_html(
     )
 
     latency_data = build_latency_chart_data(
+        summary,
+    )
+
+    score_data = build_score_chart_data(
         summary,
     )
 
@@ -164,6 +169,29 @@ td:last-child {{
 .latency-bar {{
     height:100%;
     background:#60a5fa;
+}}
+
+.score-row {{
+    margin-bottom:20px;
+}}
+
+.score-label {{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:6px;
+}}
+
+.score-background {{
+    width:100%;
+    height:20px;
+    background:#374151;
+    border-radius:10px;
+    overflow:hidden;
+}}
+
+.score-bar {{
+    height:100%;
+    background:#f59e0b;
 }}
 
 </style>
@@ -317,7 +345,9 @@ Risk Level: {risk_level}
                     class="latency-bar"
                     style="width:{
                         (
-                            item["latency_ms"] / max_latency * 100
+                            item["latency_ms"]
+                            / max_latency
+                            * 100
                             if max_latency
                             else 0
                         )
@@ -329,6 +359,38 @@ Risk Level: {risk_level}
         </div>
         """
         for item in latency_data
+    )
+}
+
+</div>
+
+
+<div class="card">
+
+<h2>Attack Score</h2>
+
+{
+    "".join(
+        f"""
+        <div class="score-row">
+
+            <div class="score-label">
+                <span>{item["attack"]}</span>
+                <span>{item["score"]:.2f}</span>
+            </div>
+
+            <div class="score-background">
+
+                <div
+                    class="score-bar"
+                    style="width:{item["score"] * 100}%"
+                ></div>
+
+            </div>
+
+        </div>
+        """
+        for item in score_data
     )
 }
 
@@ -371,7 +433,10 @@ Risk Level: {risk_level}
 
         </tr>
         """
-        for result in summary.get("results", [])
+        for result in summary.get(
+            "results",
+            [],
+        )
     )
 }
 

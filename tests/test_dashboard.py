@@ -225,3 +225,35 @@ def test_get_risk_level():
         get_risk_level(0.8)
         == "HIGH"
     )
+def test_build_score_chart_data():
+    summary = {
+        "results": [
+            {
+                "attack": "instruction_override",
+                "score": 1.0,
+            },
+            {
+                "attack": "system_override",
+                "score": 0.0,
+            },
+        ]
+    }
+
+    from aegis.dashboard.charts import (
+        build_score_chart_data,
+    )
+
+    score_data = build_score_chart_data(
+        summary
+    )
+
+    assert score_data == [
+        {
+            "attack": "instruction_override",
+            "score": 1.0,
+        },
+        {
+            "attack": "system_override",
+            "score": 0.0,
+        },
+    ]    
