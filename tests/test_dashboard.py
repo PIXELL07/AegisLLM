@@ -458,3 +458,28 @@ def test_dashboard_empty_state():
     assert "No attack latency data available." in html
     assert "No attack score data available." in html
     assert "No attack results available." in html
+
+
+def test_dashboard_risk_banner():
+    from aegis.dashboard.templates import (
+        build_dashboard_html,
+    )
+
+    summary = {
+        "model": "test-model",
+        "adaptive": False,
+        "total_attacks": 5,
+        "successful_attacks": 1,
+        "attack_success_rate": 0.2,
+        "average_latency_ms": 500.0,
+        "risk_score": 0.5,
+        "results": [],
+        "categories": {},
+    }
+
+    html = build_dashboard_html(summary)
+
+    assert "Overall Risk:" in html
+    assert "MEDIUM" in html
+    assert "Risk Score: 0.50" in html
+    assert "risk-banner medium" in html
