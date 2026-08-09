@@ -1,5 +1,10 @@
 import json
 from datetime import datetime
+from urllib.parse import quote
+
+from aegis.dashboard.builder import (
+    build_results_csv,
+)
 
 from aegis.dashboard.charts import (
     build_category_chart_data,
@@ -41,6 +46,18 @@ def build_dashboard_html(
     summary_json = json.dumps(
         summary,
         indent=2,
+    )
+
+    encoded_json = quote(
+        summary_json,
+    )
+
+    results_csv = build_results_csv(
+        summary,
+    )
+
+    encoded_csv = quote(
+        results_csv,
     )
 
     max_latency = max(
@@ -153,6 +170,11 @@ body {{
     border-radius:6px;
     font-weight:bold;
     margin-bottom:20px;
+    margin-right:8px;
+}}
+
+.download-button.csv {{
+    background:#059669;
 }}
 
 .summary-grid {{
@@ -414,6 +436,7 @@ td:nth-child(6) {{
         width:100%;
         box-sizing:border-box;
         text-align:center;
+        margin-right:0;
     }}
 
     .risk-banner {{
@@ -447,10 +470,19 @@ td:nth-child(6) {{
 
 <a
     class="download-button"
-    href="data:application/json;charset=utf-8,{summary_json}"
+    href="data:application/json;charset=utf-8,{encoded_json}"
     download="dashboard-summary.json"
 >
     Download JSON
+</a>
+
+
+<a
+    class="download-button csv"
+    href="data:text/csv;charset=utf-8,{encoded_csv}"
+    download="attack-results.csv"
+>
+    Download CSV
 </a>
 
 
