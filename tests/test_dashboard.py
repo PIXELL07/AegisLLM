@@ -42,11 +42,24 @@ def test_extract_summary():
         "model": "test-model",
         "adaptive": True,
         "risk_score": 0.75,
+        "total_attacks": 10,
+        "successful_attacks": 4,
         "metrics": {
             "adaptive_asr": 0.55,
             "total_attacks": 10,
         },
-        "results": [],
+        "results": [
+            {
+                "category": "prompt_injection",
+                "successful": True,
+                "latency_ms": 100,
+            },
+            {
+                "category": "prompt_injection",
+                "successful": False,
+                "latency_ms": 200,
+            },
+        ],
     }
 
     summary = extract_summary(
@@ -71,6 +84,16 @@ def test_extract_summary():
     assert (
         summary["total_attacks"]
         == 10
+    )
+
+    assert (
+        summary["successful_attacks"]
+        == 4
+    )
+
+    assert (
+        summary["average_latency_ms"]
+        == 150
     )
 
     assert (
