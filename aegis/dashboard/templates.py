@@ -96,6 +96,12 @@ body {{
     color:#ff6b6b;
 }}
 
+.risk-score {{
+    margin-top:8px;
+    font-size:14px;
+    color:#9ca3af;
+}}
+
 .download-button {{
     display:inline-block;
     padding:10px 16px;
@@ -380,6 +386,10 @@ td:nth-child(6) {{
 
         <div class="summary-value">
             {risk_level}
+        </div>
+
+        <div class="risk-score">
+            Risk Score: {summary["risk_score"]:.2f}
         </div>
 
     </div>
