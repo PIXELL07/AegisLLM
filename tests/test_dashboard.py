@@ -257,3 +257,44 @@ def test_build_score_chart_data():
             "score": 0.0,
         },
     ]    
+
+def test_dashboard_attack_results_table():
+    from aegis.dashboard.templates import (
+        build_dashboard_html,
+    )
+
+    summary = {
+        "model": "test-model",
+        "adaptive": False,
+        "total_attacks": 1,
+        "successful_attacks": 1,
+        "attack_success_rate": 1.0,
+        "average_latency_ms": 100.0,
+        "risk_score": 0.5,
+        "results": [
+            {
+                "attack": "test_attack",
+                "category": "prompt_injection",
+                "successful": True,
+                "score": 1.0,
+                "latency_ms": 100.0,
+            }
+        ],
+        "categories": {
+            "prompt_injection": {
+                "total": 1,
+                "successful": 1,
+                "attack_success_rate": 1.0,
+            }
+        },
+    }
+
+    html = build_dashboard_html(
+        summary,
+    )
+
+    assert "test_attack" in html
+    assert "prompt_injection" in html
+    assert "1.00" in html
+    assert "100.00 ms" in html
+    assert "Yes" in html
