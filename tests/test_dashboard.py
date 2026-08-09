@@ -433,3 +433,28 @@ def test_dashboard_responsive_layout():
     assert "@media (max-width:900px)" in html
     assert "@media (max-width:600px)" in html
     assert "grid-template-columns:1fr" in html
+
+
+def test_dashboard_empty_state():
+    from aegis.dashboard.templates import (
+        build_dashboard_html,
+    )
+
+    summary = {
+        "model": "test-model",
+        "adaptive": False,
+        "total_attacks": 0,
+        "successful_attacks": 0,
+        "attack_success_rate": 0.0,
+        "average_latency_ms": 0.0,
+        "risk_score": 0.0,
+        "results": [],
+        "categories": {},
+    }
+
+    html = build_dashboard_html(summary)
+
+    assert "No attack category data available." in html
+    assert "No attack latency data available." in html
+    assert "No attack score data available." in html
+    assert "No attack results available." in html
