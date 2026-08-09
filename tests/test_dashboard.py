@@ -408,3 +408,28 @@ def test_dashboard_generated_at():
     html = build_dashboard_html(summary)
 
     assert "Generated At:" in html
+
+
+def test_dashboard_responsive_layout():
+    from aegis.dashboard.templates import (
+        build_dashboard_html,
+    )
+
+    summary = {
+        "model": "test-model",
+        "adaptive": False,
+        "total_attacks": 1,
+        "successful_attacks": 0,
+        "attack_success_rate": 0.0,
+        "average_latency_ms": 100.0,
+        "risk_score": 0.2,
+        "results": [],
+        "categories": {},
+    }
+
+    html = build_dashboard_html(summary)
+
+    assert "viewport" in html
+    assert "@media (max-width:900px)" in html
+    assert "@media (max-width:600px)" in html
+    assert "grid-template-columns:1fr" in html
