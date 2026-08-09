@@ -386,3 +386,25 @@ def test_dashboard_risk_score():
     assert "Risk Score: 0.50" in html
     assert "MEDIUM" in html
     assert "risk-level medium" in html
+
+
+def test_dashboard_generated_at():
+    from aegis.dashboard.templates import (
+        build_dashboard_html,
+    )
+
+    summary = {
+        "model": "test-model",
+        "adaptive": False,
+        "total_attacks": 1,
+        "successful_attacks": 0,
+        "attack_success_rate": 0.0,
+        "average_latency_ms": 100.0,
+        "risk_score": 0.2,
+        "results": [],
+        "categories": {},
+    }
+
+    html = build_dashboard_html(summary)
+
+    assert "Generated At:" in html
