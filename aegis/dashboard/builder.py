@@ -1,3 +1,5 @@
+import csv
+import io
 import json
 from pathlib import Path
 
@@ -142,6 +144,71 @@ def extract_summary(report: dict) -> dict:
     }
 
 
+def build_results_csv(
+    summary: dict,
+) -> str:
+    """
+    Build CSV data for dashboard attack results.
+    """
+
+    output = io.StringIO()
+
+    writer = csv.writer(
+        output,
+    )
+
+    writer.writerow(
+        [
+            "Attack",
+            "Category",
+            "Score",
+            "Latency (ms)",
+            "Successful",
+            "Response",
+        ]
+    )
+
+    for result in summary.get(
+        "results",
+        [],
+    ):
+
+        writer.writerow(
+            [
+                result.get(
+                    "attack",
+                    "unknown",
+                ),
+                result.get(
+                    "category",
+                    "unknown",
+                ),
+                result.get(
+                    "score",
+                    0.0,
+                ),
+                result.get(
+                    "latency_ms",
+                    0.0,
+                ),
+                (
+                    "Yes"
+                    if result.get(
+                        "successful",
+                        False,
+                    )
+                    else "No"
+                ),
+                result.get(
+                    "response",
+                    "N/A",
+                ),
+            ]
+        )
+
+    return output.getvalue()
+
+
 def save_html(
     html: str,
     output_path: str,
@@ -149,11 +216,16 @@ def save_html(
     """
     Save generated dashboard HTML to disk.
     """
-    path = Path(output_path)
+
+    path = Path(
+        output_path,
+    )
+
     path.parent.mkdir(
         parents=True,
         exist_ok=True,
     )
+
     path.write_text(
         html,
         encoding="utf-8",

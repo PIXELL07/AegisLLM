@@ -483,3 +483,76 @@ def test_dashboard_risk_banner():
     assert "MEDIUM" in html
     assert "Risk Score: 0.50" in html
     assert "risk-banner medium" in html
+
+
+def test_build_results_csv():
+    from aegis.dashboard.builder import (
+        build_results_csv,
+    )
+
+    summary = {
+        "results": [
+            {
+                "attack": "test_attack",
+                "category": "prompt_injection",
+                "score": 1.0,
+                "latency_ms": 250.5,
+                "successful": True,
+                "response": "TEST_RESPONSE",
+            }
+        ]
+    }
+
+    csv_data = build_results_csv(
+        summary,
+    )
+
+    assert "Attack,Category,Score,Latency (ms),Successful,Response" in csv_data
+    assert "test_attack" in csv_data
+    assert "prompt_injection" in csv_data
+    assert "250.5" in csv_data
+    assert "Yes" in csv_data
+    assert "TEST_RESPONSE" in csv_data
+
+
+def test_dashboard_export_links():
+    from aegis.dashboard.templates import (
+        build_dashboard_html,
+    )
+
+    summary = {
+        "model": "test-model",
+        "adaptive": False,
+        "total_attacks": 1,
+        "successful_attacks": 1,
+        "attack_success_rate": 1.0,
+        "average_latency_ms": 100.0,
+        "risk_score": 0.5,
+        "results": [
+            {
+                "attack": "test_attack",
+                "category": "prompt_injection",
+                "successful": True,
+                "score": 1.0,
+                "latency_ms": 100.0,
+                "response": "TEST_RESPONSE",
+            }
+        ],
+        "categories": {
+            "prompt_injection": {
+                "total": 1,
+                "successful": 1,
+                "attack_success_rate": 1.0,
+            }
+        },
+    }
+
+    html = build_dashboard_html(
+        summary,
+    )
+
+    assert 'download="dashboard-summary.json"' in html
+    assert 'download="attack-results.csv"' in html
+    assert "Download JSON" in html
+    assert "Download CSV" in html
+    assert "test_attack" in html
