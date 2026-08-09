@@ -157,6 +157,15 @@ body {{
     font-size:20px;
 }}
 
+.empty-state {{
+    text-align:center;
+    padding:30px 20px;
+    color:#9ca3af;
+    font-size:16px;
+    background:#111827;
+    border-radius:8px;
+}}
+
 table {{
     width:100%;
     border-collapse:collapse;
@@ -583,27 +592,35 @@ Risk Level: {risk_level}
 <h2>Attack Success Rate by Category</h2>
 
 {
-    "".join(
-        f"""
-        <div class="chart-row">
+    (
+        "".join(
+            f"""
+            <div class="chart-row">
 
-            <div class="chart-label">
-                <span>{item["category"]}</span>
-                <span>{item["attack_success_rate"]:.2%}</span>
+                <div class="chart-label">
+                    <span>{item["category"]}</span>
+                    <span>{item["attack_success_rate"]:.2%}</span>
+                </div>
+
+                <div class="chart-background">
+
+                    <div
+                        class="chart-bar"
+                        style="width:{item["attack_success_rate"] * 100}%"
+                    ></div>
+
+                </div>
+
             </div>
-
-            <div class="chart-background">
-
-                <div
-                    class="chart-bar"
-                    style="width:{item["attack_success_rate"] * 100}%"
-                ></div>
-
-            </div>
-
+            """
+            for item in chart_data
+        )
+        if chart_data
+        else """
+        <div class="empty-state">
+            No attack category data available.
         </div>
         """
-        for item in chart_data
     )
 }
 
@@ -615,35 +632,43 @@ Risk Level: {risk_level}
 <h2>Attack Latency</h2>
 
 {
-    "".join(
-        f"""
-        <div class="latency-row">
+    (
+        "".join(
+            f"""
+            <div class="latency-row">
 
-            <div class="latency-label">
-                <span>{item["attack"]}</span>
-                <span>{item["latency_ms"]:.2f} ms</span>
+                <div class="latency-label">
+                    <span>{item["attack"]}</span>
+                    <span>{item["latency_ms"]:.2f} ms</span>
+                </div>
+
+                <div class="latency-background">
+
+                    <div
+                        class="latency-bar"
+                        style="width:{
+                            (
+                                item["latency_ms"]
+                                / max_latency
+                                * 100
+                                if max_latency
+                                else 0
+                            )
+                        }%"
+                    ></div>
+
+                </div>
+
             </div>
-
-            <div class="latency-background">
-
-                <div
-                    class="latency-bar"
-                    style="width:{
-                        (
-                            item["latency_ms"]
-                            / max_latency
-                            * 100
-                            if max_latency
-                            else 0
-                        )
-                    }%"
-                ></div>
-
-            </div>
-
+            """
+            for item in latency_data
+        )
+        if latency_data
+        else """
+        <div class="empty-state">
+            No attack latency data available.
         </div>
         """
-        for item in latency_data
     )
 }
 
@@ -655,27 +680,35 @@ Risk Level: {risk_level}
 <h2>Attack Score</h2>
 
 {
-    "".join(
-        f"""
-        <div class="score-row">
+    (
+        "".join(
+            f"""
+            <div class="score-row">
 
-            <div class="score-label">
-                <span>{item["attack"]}</span>
-                <span>{item["score"]:.2f}</span>
+                <div class="score-label">
+                    <span>{item["attack"]}</span>
+                    <span>{item["score"]:.2f}</span>
+                </div>
+
+                <div class="score-background">
+
+                    <div
+                        class="score-bar"
+                        style="width:{item["score"] * 100}%"
+                    ></div>
+
+                </div>
+
             </div>
-
-            <div class="score-background">
-
-                <div
-                    class="score-bar"
-                    style="width:{item["score"] * 100}%"
-                ></div>
-
-            </div>
-
+            """
+            for item in score_data
+        )
+        if score_data
+        else """
+        <div class="empty-state">
+            No attack score data available.
         </div>
         """
-        for item in score_data
     )
 }
 
@@ -686,78 +719,90 @@ Risk Level: {risk_level}
 
 <h2>Attack Results</h2>
 
-<div class="results-table">
-
-<table>
-
-<thead>
-
-<tr>
-    <th>Attack</th>
-    <th>Category</th>
-    <th>Score</th>
-    <th>Latency</th>
-    <th>Successful</th>
-    <th>Response</th>
-</tr>
-
-</thead>
-
-<tbody>
-
 {
-    "".join(
+    (
         f"""
+        <div class="results-table">
+
+        <table>
+
+        <thead>
+
         <tr>
-
-            <td>
-                {result.get("attack", "unknown")}
-            </td>
-
-            <td>
-                {result.get("category", "unknown")}
-            </td>
-
-            <td>
-                {result.get("score", 0.0):.2f}
-            </td>
-
-            <td>
-                {result.get("latency_ms", 0.0):.2f} ms
-            </td>
-
-            <td class="{
-                "success"
-                if result.get("successful", False)
-                else "failure"
-            }">
-
-                {
-                    "Yes"
-                    if result.get("successful", False)
-                    else "No"
-                }
-
-            </td>
-
-            <td class="response">
-                {result.get("response", "N/A")}
-            </td>
-
+            <th>Attack</th>
+            <th>Category</th>
+            <th>Score</th>
+            <th>Latency</th>
+            <th>Successful</th>
+            <th>Response</th>
         </tr>
+
+        </thead>
+
+        <tbody>
+
+        {
+            "".join(
+                f"""
+                <tr>
+
+                    <td>
+                        {result.get("attack", "unknown")}
+                    </td>
+
+                    <td>
+                        {result.get("category", "unknown")}
+                    </td>
+
+                    <td>
+                        {result.get("score", 0.0):.2f}
+                    </td>
+
+                    <td>
+                        {result.get("latency_ms", 0.0):.2f} ms
+                    </td>
+
+                    <td class="{
+                        "success"
+                        if result.get("successful", False)
+                        else "failure"
+                    }">
+
+                        {
+                            "Yes"
+                            if result.get("successful", False)
+                            else "No"
+                        }
+
+                    </td>
+
+                    <td class="response">
+                        {result.get("response", "N/A")}
+                    </td>
+
+                </tr>
+                """
+                for result in summary.get(
+                    "results",
+                    [],
+                )
+            )
+        }
+
+        </tbody>
+
+        </table>
+
+        </div>
         """
-        for result in summary.get(
-            "results",
-            [],
-        )
+        if summary.get("results", [])
+        else """
+        <div class="empty-state">
+            No attack results available.
+        </div>
+        """
     )
 }
-
-</tbody>
-
-</table>
-
-</div>
 
 </div>
 
