@@ -40,6 +40,7 @@ def test_extract_summary():
     report = {
         "model": "test-model",
         "adaptive": True,
+        "risk_score": 0.75,
         "metrics": {
             "adaptive_asr": 0.55,
             "total_attacks": 10,
@@ -62,17 +63,18 @@ def test_extract_summary():
     )
 
     assert (
-        summary[
-            "attack_success_rate"
-        ]
+        summary["attack_success_rate"]
         == 0.55
     )
 
     assert (
-        summary[
-            "total_attacks"
-        ]
+        summary["total_attacks"]
         == 10
+    )
+
+    assert (
+        summary["risk_score"]
+        == 0.75
     )
 
 

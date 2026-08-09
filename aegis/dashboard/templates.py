@@ -151,6 +151,17 @@ td:last-child {{
 
 <div class="card">
 
+<h2>Risk Score</h2>
+
+<div class="metric">
+{summary["risk_score"]:.2f}
+</div>
+
+</div>
+
+
+<div class="card">
+
 <h2>Adaptive Benchmark</h2>
 
 <div class="metric">
