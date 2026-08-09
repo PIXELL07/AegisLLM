@@ -36,3 +36,31 @@ def get_risk_level(
         return "MEDIUM"
 
     return "HIGH"
+
+
+def build_latency_chart_data(
+    summary: dict,
+) -> list[dict]:
+    """
+    Build chart data for attack latency.
+    """
+
+    results = summary.get(
+        "results",
+        [],
+    )
+
+    return [
+        {
+            "attack": result.get(
+                "attack",
+                "unknown",
+            ),
+            "latency_ms": result.get(
+                "latency_ms",
+                0.0,
+            ),
+        }
+        for result in results
+        if "latency_ms" in result
+    ]
