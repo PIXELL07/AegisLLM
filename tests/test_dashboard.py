@@ -757,3 +757,71 @@ def test_dashboard_interactive_controls():
     assert "sortLatency" in html
     assert "sortScores" in html
     assert "toggleCategoryView" in html
+
+def test_dashboard_attack_filters():
+    from aegis.dashboard.templates import (
+        build_dashboard_html,
+    )
+
+    summary = {
+        "model": "test-model",
+        "adaptive": False,
+        "total_attacks": 3,
+        "successful_attacks": 2,
+        "attack_success_rate": 0.6667,
+        "average_latency_ms": 150.0,
+        "risk_score": 0.5,
+        "results": [
+            {
+                "attack": "attack_one",
+                "category": "prompt_injection",
+                "successful": True,
+                "score": 1.0,
+                "latency_ms": 100.0,
+                "response": "RESPONSE_ONE",
+            },
+            {
+                "attack": "attack_two",
+                "category": "prompt_injection",
+                "successful": False,
+                "score": 0.0,
+                "latency_ms": 200.0,
+                "response": "RESPONSE_TWO",
+            },
+            {
+                "attack": "attack_three",
+                "category": "jailbreak",
+                "successful": True,
+                "score": 1.0,
+                "latency_ms": 150.0,
+                "response": "RESPONSE_THREE",
+            },
+        ],
+        "categories": {
+            "prompt_injection": {
+                "total": 2,
+                "successful": 1,
+                "attack_success_rate": 0.5,
+            },
+            "jailbreak": {
+                "total": 1,
+                "successful": 1,
+                "attack_success_rate": 1.0,
+            },
+        },
+    }
+
+    html = build_dashboard_html(
+        summary,
+    )
+
+    assert "Category" in html
+    assert "All Categories" in html
+    assert "All Results" in html
+    assert "Successful" in html
+    assert "Failed" in html
+    assert "Clear Filters" in html
+    assert "filterAttackResults" in html
+    assert "clearAttackFilters" in html
+    assert 'data-category="prompt_injection"' in html
+    assert 'data-category="jailbreak"' in html
