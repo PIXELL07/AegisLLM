@@ -1,4 +1,5 @@
 import json
+from aegis.dashboard.templates import build_dashboard_html
 
 from aegis.dashboard.builder import (
     extract_summary,
@@ -145,3 +146,28 @@ def test_category_summary():
         ]["attack_success_rate"]
         == 1.0
     )    
+
+def test_dashboard_contains_attack_results():
+    report = {
+        "model": "test-model",
+        "results": [
+            {
+                "category": "prompt_injection",
+                "successful": True,
+            },
+            {
+                "category": "jailbreak",
+                "successful": False,
+            },
+        ],
+    }
+
+    summary = extract_summary(report)
+
+    html = build_dashboard_html(summary)
+
+    assert "Attack Results" in html
+    assert "prompt_injection" in html
+    assert "jailbreak" in html
+    assert "Yes" in html
+    assert "No" in html
