@@ -118,6 +118,32 @@ body {{
     margin-top:8px;
 }}
 
+.risk-banner {{
+    padding:18px 20px;
+    border-radius:10px;
+    margin-bottom:20px;
+    font-size:20px;
+    font-weight:bold;
+}}
+
+.risk-banner.low {{
+    background:#14532d;
+    color:#86efac;
+    border:1px solid #22c55e;
+}}
+
+.risk-banner.medium {{
+    background:#713f12;
+    color:#fde047;
+    border:1px solid #eab308;
+}}
+
+.risk-banner.high {{
+    background:#7f1d1d;
+    color:#fca5a5;
+    border:1px solid #ef4444;
+}}
+
 .download-button {{
     display:inline-block;
     padding:10px 16px;
@@ -390,6 +416,11 @@ td:nth-child(6) {{
         text-align:center;
     }}
 
+    .risk-banner {{
+        font-size:18px;
+        padding:16px;
+    }}
+
 }}
 
 </style>
@@ -399,6 +430,19 @@ td:nth-child(6) {{
 <body>
 
 <h1>AegisLLM Security Dashboard</h1>
+
+
+<div class="risk-banner {risk_class}">
+
+    Overall Risk:
+    {risk_level}
+
+    &nbsp; | &nbsp;
+
+    Risk Score:
+    {summary["risk_score"]:.2f}
+
+</div>
 
 
 <a
