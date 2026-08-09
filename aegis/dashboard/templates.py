@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 from aegis.dashboard.charts import (
     build_category_chart_data,
@@ -32,6 +33,10 @@ def build_dashboard_html(
     )
 
     risk_class = risk_level.lower()
+
+    generated_at = datetime.now().strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
 
     summary_json = json.dumps(
         summary,
@@ -100,6 +105,12 @@ body {{
     margin-top:8px;
     font-size:14px;
     color:#9ca3af;
+}}
+
+.generated-at {{
+    font-size:14px;
+    color:#9ca3af;
+    margin-top:8px;
 }}
 
 .download-button {{
@@ -394,6 +405,10 @@ td:nth-child(6) {{
 
     </div>
 
+</div>
+
+<div class="generated-at">
+    Generated At: {generated_at}
 </div>
 
 </div>
