@@ -64,3 +64,31 @@ def build_latency_chart_data(
         for result in results
         if "latency_ms" in result
     ]
+
+
+def build_score_chart_data(
+    summary: dict,
+) -> list[dict]:
+    """
+    Build chart data for attack scores.
+    """
+
+    results = summary.get(
+        "results",
+        [],
+    )
+
+    return [
+        {
+            "attack": result.get(
+                "attack",
+                "unknown",
+            ),
+            "score": result.get(
+                "score",
+                0.0,
+            ),
+        }
+        for result in results
+        if "score" in result
+    ]
