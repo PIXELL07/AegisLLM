@@ -1,7 +1,6 @@
-import json
-
 from aegis.dashboard.charts import (
     build_category_chart_data,
+    get_risk_level,
 )
 
 
@@ -16,8 +15,8 @@ def build_dashboard_html(
         summary,
     )
 
-    chart_data_json = json.dumps(
-        chart_data,
+    risk_level = get_risk_level(
+        summary["risk_score"],
     )
 
     return f"""
@@ -50,6 +49,12 @@ body {{
     font-size:32px;
     font-weight:bold;
     color:#4ade80;
+}}
+
+.risk-level {{
+    font-size:24px;
+    font-weight:bold;
+    margin-top:10px;
 }}
 
 table {{
@@ -155,6 +160,10 @@ td:last-child {{
 
 <div class="metric">
 {summary["risk_score"]:.2f}
+</div>
+
+<div class="risk-level">
+Risk Level: {risk_level}
 </div>
 
 </div>
