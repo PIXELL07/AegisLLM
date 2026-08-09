@@ -199,12 +199,16 @@ def test_build_category_chart_data():
 
     assert chart_data == [
         {
-            "category": "prompt_injection",
-            "attack_success_rate": 0.2,
+           "category": "prompt_injection",
+           "attack_success_rate": 0.2,
+           "total": 5,
+           "successful": 1,
         },
         {
-            "category": "jailbreak",
-            "attack_success_rate": 0.5,
+           "category": "jailbreak",
+           "attack_success_rate": 0.5,
+           "total": 4,
+           "successful": 2,
         },
     ]
 
@@ -582,3 +586,174 @@ def test_dashboard_benchmark_metadata():
     assert "Total Attacks" in html
     assert "Generated At" in html
     assert "test-model" in html
+
+
+def test_category_chart_includes_counts():
+    from aegis.dashboard.charts import (
+        build_category_chart_data,
+    )
+
+    summary = {
+        "categories": {
+            "prompt_injection": {
+                "total": 5,
+                "successful": 2,
+                "attack_success_rate": 0.4,
+            }
+        }
+    }
+
+    chart_data = build_category_chart_data(
+        summary,
+    )
+
+    assert chart_data == [
+        {
+            "category": "prompt_injection",
+            "attack_success_rate": 0.4,
+            "total": 5,
+            "successful": 2,
+        }
+    ]
+
+
+def test_dashboard_interactive_controls():
+    from aegis.dashboard.templates import (
+        build_dashboard_html,
+    )
+
+    summary = {
+        "model": "test-model",
+        "adaptive": False,
+        "total_attacks": 2,
+        "successful_attacks": 1,
+        "attack_success_rate": 0.5,
+        "average_latency_ms": 150.0,
+        "risk_score": 0.5,
+        "results": [
+            {
+                "attack": "test_attack",
+                "category": "prompt_injection",
+                "successful": True,
+                "score": 1.0,
+                "latency_ms": 100.0,
+                "response": "TEST",
+            },
+            {
+                "attack": "second_attack",
+                "category": "jailbreak",
+                "successful": False,
+                "score": 0.0,
+                "latency_ms": 200.0,
+                "response": "TEST2",
+            },
+        ],
+        "categories": {
+            "prompt_injection": {
+                "total": 1,
+                "successful": 1,
+                "attack_success_rate": 1.0,
+            },
+            "jailbreak": {
+                "total": 1,
+                "successful": 0,
+                "attack_success_rate": 0.0,
+            },
+        },
+    }
+
+    html = build_dashboard_html(
+        summary,
+    )
+
+    assert "Category View" in html
+    assert "Latency Sort" in html
+    assert "Score Sort" in html
+    assert "sortLatency" in html
+    assert "sortScores" in html
+    assert "toggleCategoryView" in html
+
+def test_category_chart_includes_counts():
+    from aegis.dashboard.charts import (
+        build_category_chart_data,
+    )
+
+    summary = {
+        "categories": {
+            "prompt_injection": {
+                "total": 5,
+                "successful": 2,
+                "attack_success_rate": 0.4,
+            }
+        }
+    }
+
+    chart_data = build_category_chart_data(
+        summary,
+    )
+
+    assert chart_data == [
+        {
+            "category": "prompt_injection",
+            "attack_success_rate": 0.4,
+            "total": 5,
+            "successful": 2,
+        }
+    ]
+
+
+def test_dashboard_interactive_controls():
+    from aegis.dashboard.templates import (
+        build_dashboard_html,
+    )
+
+    summary = {
+        "model": "test-model",
+        "adaptive": False,
+        "total_attacks": 2,
+        "successful_attacks": 1,
+        "attack_success_rate": 0.5,
+        "average_latency_ms": 150.0,
+        "risk_score": 0.5,
+        "results": [
+            {
+                "attack": "test_attack",
+                "category": "prompt_injection",
+                "successful": True,
+                "score": 1.0,
+                "latency_ms": 100.0,
+                "response": "TEST",
+            },
+            {
+                "attack": "second_attack",
+                "category": "jailbreak",
+                "successful": False,
+                "score": 0.0,
+                "latency_ms": 200.0,
+                "response": "TEST2",
+            },
+        ],
+        "categories": {
+            "prompt_injection": {
+                "total": 1,
+                "successful": 1,
+                "attack_success_rate": 1.0,
+            },
+            "jailbreak": {
+                "total": 1,
+                "successful": 0,
+                "attack_success_rate": 0.0,
+            },
+        },
+    }
+
+    html = build_dashboard_html(
+        summary,
+    )
+
+    assert "Category View" in html
+    assert "Latency Sort" in html
+    assert "Score Sort" in html
+    assert "sortLatency" in html
+    assert "sortScores" in html
+    assert "toggleCategoryView" in html
