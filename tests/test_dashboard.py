@@ -1,10 +1,13 @@
 import json
-from aegis.dashboard.templates import build_dashboard_html
 
 from aegis.dashboard.builder import (
     extract_summary,
     load_report,
     save_html,
+)
+
+from aegis.dashboard.charts import (
+    build_category_chart_data,
 )
 
 
@@ -95,8 +98,8 @@ def test_save_html(
         == "<html></html>"
     )
 
-def test_category_summary():
 
+def test_category_summary():
     report = {
         "model": "test-model",
         "results": [
@@ -145,29 +148,36 @@ def test_category_summary():
             "jailbreak"
         ]["attack_success_rate"]
         == 1.0
-    )    
+    )
 
-def test_dashboard_contains_attack_results():
-    report = {
-        "model": "test-model",
-        "results": [
-            {
-                "category": "prompt_injection",
-                "successful": True,
+
+def test_build_category_chart_data():
+    summary = {
+        "categories": {
+            "prompt_injection": {
+                "total": 5,
+                "successful": 1,
+                "attack_success_rate": 0.2,
             },
-            {
-                "category": "jailbreak",
-                "successful": False,
+            "jailbreak": {
+                "total": 4,
+                "successful": 2,
+                "attack_success_rate": 0.5,
             },
-        ],
+        }
     }
 
-    summary = extract_summary(report)
+    chart_data = build_category_chart_data(
+        summary
+    )
 
-    html = build_dashboard_html(summary)
-
-    assert "Attack Results" in html
-    assert "prompt_injection" in html
-    assert "jailbreak" in html
-    assert "Yes" in html
-    assert "No" in html
+    assert chart_data == [
+        {
+            "category": "prompt_injection",
+            "attack_success_rate": 0.2,
+        },
+        {
+            "category": "jailbreak",
+            "attack_success_rate": 0.5,
+        },
+    ]
