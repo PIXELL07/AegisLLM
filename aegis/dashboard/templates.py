@@ -2,6 +2,7 @@ import json
 
 from aegis.dashboard.charts import (
     build_category_chart_data,
+    build_latency_chart_data,
     get_risk_level,
 )
 
@@ -17,6 +18,10 @@ def build_dashboard_html(
         summary,
     )
 
+    latency_data = build_latency_chart_data(
+        summary,
+    )
+
     risk_level = get_risk_level(
         summary["risk_score"],
     )
@@ -24,6 +29,14 @@ def build_dashboard_html(
     summary_json = json.dumps(
         summary,
         indent=2,
+    )
+
+    max_latency = max(
+        (
+            item["latency_ms"]
+            for item in latency_data
+        ),
+        default=0.0,
     )
 
     return f"""
@@ -128,6 +141,29 @@ td:last-child {{
 .chart-bar {{
     height:100%;
     background:#4ade80;
+}}
+
+.latency-row {{
+    margin-bottom:20px;
+}}
+
+.latency-label {{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:6px;
+}}
+
+.latency-background {{
+    width:100%;
+    height:20px;
+    background:#374151;
+    border-radius:10px;
+    overflow:hidden;
+}}
+
+.latency-bar {{
+    height:100%;
+    background:#60a5fa;
 }}
 
 </style>
@@ -255,6 +291,44 @@ Risk Level: {risk_level}
         </div>
         """
         for item in chart_data
+    )
+}
+
+</div>
+
+
+<div class="card">
+
+<h2>Attack Latency</h2>
+
+{
+    "".join(
+        f"""
+        <div class="latency-row">
+
+            <div class="latency-label">
+                <span>{item["attack"]}</span>
+                <span>{item["latency_ms"]:.2f} ms</span>
+            </div>
+
+            <div class="latency-background">
+
+                <div
+                    class="latency-bar"
+                    style="width:{
+                        (
+                            item["latency_ms"] / max_latency * 100
+                            if max_latency
+                            else 0
+                        )
+                    }%"
+                ></div>
+
+            </div>
+
+        </div>
+        """
+        for item in latency_data
     )
 }
 
