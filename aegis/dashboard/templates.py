@@ -99,20 +99,40 @@ table {{
     table-layout:fixed;
 }}
 
-th, td {{
+th,
+td {{
     padding:12px 16px;
     border-bottom:1px solid #333;
     text-align:left;
 }}
 
-th:first-child,
-td:first-child {{
-    width:50%;
+th {{
+    font-weight:bold;
 }}
 
-th:last-child,
-td:last-child {{
-    width:50%;
+th:nth-child(1),
+td:nth-child(1) {{
+    width:28%;
+}}
+
+th:nth-child(2),
+td:nth-child(2) {{
+    width:22%;
+}}
+
+th:nth-child(3),
+td:nth-child(3) {{
+    width:12%;
+}}
+
+th:nth-child(4),
+td:nth-child(4) {{
+    width:20%;
+}}
+
+th:nth-child(5),
+td:nth-child(5) {{
+    width:18%;
 }}
 
 .success {{
@@ -192,6 +212,10 @@ td:last-child {{
 .score-bar {{
     height:100%;
     background:#f59e0b;
+}}
+
+.results-table {{
+    overflow-x:auto;
 }}
 
 </style>
@@ -401,12 +425,23 @@ Risk Level: {risk_level}
 
 <h2>Attack Results</h2>
 
+<div class="results-table">
+
 <table>
 
+<thead>
+
 <tr>
+    <th>Attack</th>
     <th>Category</th>
+    <th>Score</th>
+    <th>Latency</th>
     <th>Successful</th>
 </tr>
+
+</thead>
+
+<tbody>
 
 {
     "".join(
@@ -414,7 +449,19 @@ Risk Level: {risk_level}
         <tr>
 
             <td>
+                {result.get("attack", "unknown")}
+            </td>
+
+            <td>
                 {result.get("category", "unknown")}
+            </td>
+
+            <td>
+                {result.get("score", 0.0):.2f}
+            </td>
+
+            <td>
+                {result.get("latency_ms", 0.0):.2f} ms
             </td>
 
             <td class="{
@@ -440,7 +487,11 @@ Risk Level: {risk_level}
     )
 }
 
+</tbody>
+
 </table>
+
+</div>
 
 </div>
 
