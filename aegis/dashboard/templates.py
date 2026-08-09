@@ -68,6 +68,19 @@ def build_dashboard_html(
         default=0.0,
     )
 
+    categories = sorted(
+        {
+            result.get(
+                "category",
+                "unknown",
+            )
+            for result in summary.get(
+                "results",
+                [],
+            )
+        }
+    )
+
     return f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -272,6 +285,57 @@ body {{
     background:#111827;
     color:white;
     cursor:pointer;
+}}
+
+.filter-controls {{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}}
+
+.filter-label {{
+    color:#9ca3af;
+    font-weight:bold;
+}}
+
+.filter-select {{
+    padding:8px 12px;
+    border:1px solid #4b5563;
+    border-radius:6px;
+    background:#111827;
+    color:white;
+    cursor:pointer;
+}}
+
+.filter-button {{
+    padding:8px 14px;
+    border:1px solid #4b5563;
+    border-radius:6px;
+    background:#2563eb;
+    color:white;
+    cursor:pointer;
+    font-weight:bold;
+}}
+
+.filter-button:hover {{
+    background:#1d4ed8;
+}}
+
+.filter-count {{
+    margin-bottom:15px;
+    color:#9ca3af;
+    font-size:14px;
+}}
+
+.no-filter-results {{
+    display:none;
+    text-align:center;
+    padding:30px 20px;
+    color:#9ca3af;
+    background:#111827;
+    border-radius:8px;
 }}
 
 table {{
@@ -507,13 +571,16 @@ td:nth-child(6) {{
         margin-right:0;
     }}
 
-    .chart-controls {{
+    .chart-controls,
+    .filter-controls {{
         align-items:stretch;
         flex-direction:column;
     }}
 
     .chart-control-button,
-    .chart-select {{
+    .chart-select,
+    .filter-select,
+    .filter-button {{
         width:100%;
         box-sizing:border-box;
     }}
@@ -854,9 +921,6 @@ Risk Level: {risk_level}
 
                     <span
                         class="category-value"
-                        data-rate="{item["attack_success_rate"]}"
-                        data-total="{item["total"]}"
-                        data-successful="{item["successful"]}"
                     >
                         {item["attack_success_rate"]:.2%}
                     </span>
@@ -868,20 +932,6 @@ Risk Level: {risk_level}
                     <div
                         class="chart-bar category-bar"
                         style="width:{item["attack_success_rate"] * 100}%"
-                        data-rate-width="{item["attack_success_rate"] * 100}"
-                        data-count-width="{
-                            (
-                                item["successful"]
-                                / max(
-                                    (
-                                        category_item["total"]
-                                        for category_item in chart_data
-                                    ),
-                                    default=1,
-                                )
-                                * 100
-                            )
-                        }"
                     ></div>
 
                 </div>
@@ -1082,6 +1132,85 @@ Risk Level: {risk_level}
 
 <h2>Attack Results</h2>
 
+<div class="filter-controls">
+
+    <span class="filter-label">
+        Filters:
+    </span>
+
+    <label for="categoryFilter">
+        Category
+    </label>
+
+    <select
+        id="categoryFilter"
+        class="filter-select"
+        onchange="filterAttackResults()"
+    >
+
+        <option value="all">
+            All Categories
+        </option>
+
+        {
+            "".join(
+                f"""
+                <option value="{category}">
+                    {category}
+                </option>
+                """
+                for category in categories
+            )
+        }
+
+    </select>
+
+
+    <label for="resultFilter">
+        Result
+    </label>
+
+    <select
+        id="resultFilter"
+        class="filter-select"
+        onchange="filterAttackResults()"
+    >
+
+        <option value="all">
+            All Results
+        </option>
+
+        <option value="successful">
+            Successful
+        </option>
+
+        <option value="failed">
+            Failed
+        </option>
+
+    </select>
+
+
+    <button
+        class="filter-button"
+        onclick="clearAttackFilters()"
+    >
+        Clear Filters
+    </button>
+
+</div>
+
+
+<div
+    id="filterCount"
+    class="filter-count"
+>
+    Showing {len(summary.get("results", []))}
+    of {len(summary.get("results", []))}
+    attacks
+</div>
+
+
 {
     (
         f"""
@@ -1102,12 +1231,19 @@ Risk Level: {risk_level}
 
         </thead>
 
-        <tbody>
+        <tbody id="attackResultsBody">
 
         {
             "".join(
                 f"""
-                <tr>
+                <tr
+                    data-category="{result.get("category", "unknown")}"
+                    data-successful="{
+                        "true"
+                        if result.get("successful", False)
+                        else "false"
+                    }"
+                >
 
                     <td>
                         {result.get("attack", "unknown")}
@@ -1167,6 +1303,13 @@ Risk Level: {risk_level}
     )
 }
 
+<div
+    id="noFilterResults"
+    class="no-filter-results"
+>
+    No attacks match the selected filters.
+</div>
+
 </div>
 
 
@@ -1192,10 +1335,6 @@ function toggleCategoryView(view) {{
             ".category-value"
         );
 
-        const barElement = row.querySelector(
-            ".category-bar"
-        );
-
         const rate = parseFloat(
             row.dataset.rate
         );
@@ -1206,6 +1345,10 @@ function toggleCategoryView(view) {{
 
         const successful = parseFloat(
             row.dataset.successful
+        );
+
+        const barElement = row.querySelector(
+            ".category-bar"
         );
 
         if (view === "count") {{
@@ -1321,6 +1464,99 @@ function sortScores(order) {{
     rows.forEach(function(row) {{
         container.appendChild(row);
     }});
+}}
+
+
+function filterAttackResults() {{
+
+    const categoryFilter =
+        document.getElementById(
+            "categoryFilter"
+        ).value;
+
+    const resultFilter =
+        document.getElementById(
+            "resultFilter"
+        ).value;
+
+    const rows = document.querySelectorAll(
+        "#attackResultsBody tr"
+    );
+
+    let visibleCount = 0;
+
+    rows.forEach(function(row) {{
+
+        const category =
+            row.dataset.category;
+
+        const successful =
+            row.dataset.successful === "true";
+
+        const categoryMatches =
+            categoryFilter === "all"
+            ||
+            category === categoryFilter;
+
+        const resultMatches =
+            resultFilter === "all"
+            ||
+            (
+                resultFilter === "successful"
+                && successful
+            )
+            ||
+            (
+                resultFilter === "failed"
+                && !successful
+            );
+
+        const visible =
+            categoryMatches
+            && resultMatches;
+
+        row.style.display =
+            visible
+                ? ""
+                : "none";
+
+        if (visible) {{
+            visibleCount++;
+        }}
+
+    }});
+
+    const totalCount = rows.length;
+
+    document.getElementById(
+        "filterCount"
+    ).textContent =
+        "Showing "
+        + visibleCount
+        + " of "
+        + totalCount
+        + " attacks";
+
+    document.getElementById(
+        "noFilterResults"
+    ).style.display =
+        visibleCount === 0
+            ? "block"
+            : "none";
+}}
+
+
+function clearAttackFilters() {{
+
+    document.getElementById(
+        "categoryFilter"
+    ).value = "all";
+
+    document.getElementById(
+        "resultFilter"
+    ).value = "all";
+
+    filterAttackResults();
 }}
 
 </script>
