@@ -1,745 +1,470 @@
-# 🛡️ AegisLLM
+<div align="center">
 
-**AegisLLM** is an adversarial security benchmarking framework for evaluating the robustness of Large Language Models against prompt injection, jailbreak, encoding-based attacks, adaptive adversarial mutations, and prompt-level defenses.
+<img src="docs/aegisllm-logo.svg" alt="AegisLLM" width="900">
 
-The project provides a reproducible workflow for:
+### Security Benchmarking and Defensive Evaluation for Large Language Models
 
-- running adversarial attacks against LLMs,
-- evaluating attack success,
-- measuring security risk,
-- comparing benchmark runs for regressions,
-- automatically adapting failed attacks,
-- benchmarking defensive mechanisms,
-- and measuring the security–utility tradeoff of those defenses.
+AegisLLM is a modular security benchmarking framework designed to **evaluate, measure, and improve the security of Large Language Models (LLMs)** against adversarial attacks and defensive controls.
 
-AegisLLM currently supports local LLM evaluation through **Ollama**.
+It helps security researchers and developers answer a practical question:
+
+> **How well does an LLM withstand attacks, and how effective are our defenses at protecting it without unnecessarily blocking legitimate use?**
+
+<br>
+
+[![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Tests](https://img.shields.io/badge/tests-265%20passing-2ea44f?logo=pytest&logoColor=white)](https://docs.pytest.org/)
+[![Ollama](https://img.shields.io/badge/Ollama-supported-black?logo=ollama&logoColor=white)](https://ollama.com/)
+[![Security](https://img.shields.io/badge/focus-LLM%20security-red)](#why-aegisllm)
+[![License](https://img.shields.io/badge/license-see%20repository-lightgrey)](#license)
+
+</div>
 
 ---
 
-## Overview
+## 🛡️ Why AegisLLM?
 
-Traditional LLM testing often evaluates a fixed set of prompts once.
+LLMs are increasingly used in applications, agents, automation, and decision-support systems. Their usefulness also creates a security problem: an attacker may try to manipulate the model into ignoring instructions, revealing restricted behavior, or producing responses that violate the intended security policy.
 
-AegisLLM extends this approach by treating LLM security testing as a repeatable adversarial benchmarking process.
+AegisLLM provides a structured way to test those risks instead of relying on a few manual prompts.
+
+### The goal
+
+AegisLLM brings together:
 
 ```text
-                     ┌─────────────────────┐
-                     │      AegisLLM       │
-                     └──────────┬──────────┘
-                                │
-              ┌─────────────────┼─────────────────┐
-              │                 │                 │
-              ▼                 ▼                 ▼
-       Static Attacks     Adaptive Attacks     Defenses
-              │                 │                 │
-              ▼                 ▼                 ▼
-       Prompt Injection    Prompt Mutation     Rule Guard
-       Jailbreak           Retry Strategies    Benign Controls
-       Encoding            Attack Discovery    Block Analysis
-              │                 │                 │
-              └─────────────────┼─────────────────┘
-                                ▼
-                         Target LLM
-                                │
-                                ▼
-                           Evaluators
-                                │
-                                ▼
-                    Metrics / Risk Analysis
-                                │
-                                ▼
-                     Regression Detection
+Adversarial Attacks
+        ↓
+LLM Evaluation
+        ↓
+Security Metrics
+        ↓
+Risk Analysis
+        ↓
+Defense Evaluation
+        ↓
+Regression Detection
+        ↓
+Security Dashboard
 ```
 
-```mermaid
-flowchart TD
-    A[AegisLLM]
-
-    A --> B[Attack Engine]
-    A --> C[Defense Engine]
-    A --> D[Evaluation Engine]
-
-    B --> B1[Prompt Injection]
-    B --> B2[Jailbreak]
-    B --> B3[Tool Abuse]
-    B --> B4[Memory Poisoning]
-    B --> B5[Context Overflow]
-
-    C --> C1[Regex Filter]
-    C --> C2[ML Classifier]
-    C --> C3[Embedding Similarity]
-    C --> C4[LLM Judge]
-    C --> C5[Hybrid Defense]
-
-    D --> D1[Metrics]
-    D --> D2[Leaderboard]
-    D --> D3[Reports]
-    D --> D4[Dashboard]
-    D --> D5[Visual Analytics]
-```
+This makes it possible to compare benchmark runs and understand whether an LLM's security posture is improving or getting worse.
 
 ---
 
-# Features
+## 🔐 What AegisLLM Helps Protect Against
 
-## Adversarial Attack Benchmarking
-
-AegisLLM currently includes three adversarial attack categories:
+AegisLLM currently provides evaluation for attack categories including:
 
 - **Prompt Injection**
-- **Jailbreak**
-- **Encoding-based attacks**
+- **Jailbreak Attacks**
+- **Encoding-based Attacks**
+- **Adaptive Attack Strategies**
 
-Attack datasets are stored separately from the execution engine, allowing new attacks to be added without modifying benchmark logic.
+The framework is designed around a modular attack architecture so additional attack types can be added without rewriting the benchmark engine.
 
-Example structure:
+---
+
+## 🧠 Adaptive Attack Evaluation
+
+AegisLLM can evaluate attacks adaptively instead of treating every attack as a single attempt.
+
+The adaptive workflow can:
+
+1. Send an initial attack.
+2. Evaluate the model response.
+3. Apply mutation strategies when required.
+4. Retry the modified attack.
+5. Record the number of attempts.
+6. Measure adaptive attack success.
+
+This helps reveal attacks that may fail initially but succeed after controlled mutation.
+
+---
+
+## 🛡️ Defense Benchmarking
+
+Security testing is not only about finding attacks.
+
+AegisLLM also evaluates defensive controls to answer:
+
+> **Does a defense actually reduce successful attacks?**
+
+The framework includes rule-based defensive evaluation with configurable detection behavior.
+
+Defense benchmarking can measure:
+
+- Baseline attack success
+- Defended attack success
+- Attack success reduction
+- Defense block rate
+- Defense bypass behavior
+- Category-level defense performance
+- Benign prompt behavior
+
+---
+
+## ⚖️ Security vs. Usability
+
+A defense that blocks every prompt is not necessarily a good defense.
+
+AegisLLM therefore includes **benign control evaluation** to help identify unwanted blocking of legitimate prompts.
+
+This makes it possible to consider both:
 
 ```text
-datasets/
-└── attacks/
-    ├── prompt_injection.json
-    ├── jailbreak.json
-    └── encoding.json
+Security
+   +
+Utility
+   ↓
+Better Defensive Evaluation
 ```
 
 ---
 
-## Pluggable Target Architecture
+## 📊 Security Metrics
 
-LLM targets are separated from attack and evaluation logic.
+AegisLLM provides measurable security results instead of only pass/fail output.
 
-The current implementation supports:
-
-```text
-Ollama
-```
-
-with models such as:
-
-```text
-llama3.2:3b
-```
-
-The target abstraction allows additional providers to be integrated later without rewriting the benchmark engine.
-
----
-
-## Attack Evaluators
-
-AegisLLM supports multiple attack-success evaluation strategies.
-
-### Exact Match
-
-The model response must exactly match the expected attack marker.
-
-```bash
---evaluator exact
-```
-
-### Contains Match
-
-The expected attack marker may appear within a larger response.
-
-```bash
---evaluator contains
-```
-
-This allows the same benchmark to be evaluated under different success criteria.
-
----
-
-# Security Metrics
-
-AegisLLM calculates several security metrics from benchmark results.
-
-## Attack Success Rate
+### Attack Success Rate
 
 ```text
 ASR = Successful Attacks / Total Attacks
 ```
 
-A higher ASR indicates that a larger proportion of adversarial attacks succeeded.
+### Risk Score
+
+A normalized risk score can be used to summarize the observed security risk of a benchmark run.
+
+### Category Metrics
+
+Attack performance can also be examined by category so that weaknesses are easier to identify.
+
+### Latency
+
+Benchmark results include response latency, allowing security results to be considered together with model performance.
 
 ---
 
-## Severity-Aware Risk Score
+## 🔎 Security Regression Detection
 
-Attacks can carry severity levels.
+Security can change between model versions, prompts, defenses, or configurations.
 
-AegisLLM combines attack success with severity to calculate a normalized security risk score.
+AegisLLM supports comparing benchmark runs to detect security regressions.
 
-This prevents all attacks from being treated as equally important.
-
----
-
-## Category Metrics
-
-Metrics are calculated independently for each attack category.
-
-Example:
+This can help identify situations such as:
 
 ```text
-Category             Successful      ASR
-------------------------------------------------
-prompt_injection        4 / 5       80.00%
-jailbreak               3 / 5       60.00%
-encoding                0 / 5        0.00%
+Previous Model
+     ↓
+5% attack success
+     ↓
+New Model
+     ↓
+18% attack success
+     ↓
+⚠️ Security Regression
 ```
+
+Regression functionality can consider overall and category-level benchmark behavior.
 
 ---
 
-# Benchmarking
+## 🦙 Local LLM Evaluation with Ollama
 
-Run a single attack dataset:
+AegisLLM includes an Ollama target adapter for evaluating locally running models.
 
-```bash
-python scripts/run_benchmark.py \
-  --model llama3.2:3b \
-  --dataset datasets/attacks/prompt_injection.json \
-  --evaluator exact
-```
-
-Run every available attack category:
-
-```bash
-python scripts/run_benchmark.py \
-  --model llama3.2:3b \
-  --all \
-  --evaluator exact
-```
-
-Export results:
-
-```bash
-python scripts/run_benchmark.py \
-  --model llama3.2:3b \
-  --all \
-  --evaluator exact \
-  --output results/benchmark.json
-```
-
-JSON and CSV benchmark exports are supported.
-
----
-
-# Offline Evaluation
-
-Saved benchmark results can be re-evaluated without querying the model again.
-
-This is useful for comparing evaluator behavior without repeatedly performing inference.
-
-```bash
-python scripts/evaluate_results.py \
-  results/offline-test.json \
-  --evaluator exact
-```
-
-Or:
-
-```bash
-python scripts/evaluate_results.py \
-  results/offline-test.json \
-  --evaluator contains
-```
-
-Example:
+Example model:
 
 ```text
-Evaluator : exact
-ASR       : 46.67%
-
-Evaluator : contains
-ASR       : 53.33%
+llama3.2:3b
 ```
+
+The adapter communicates with the local Ollama API and supports configurable:
+
+- Model name
+- Ollama base URL
+- Prompt generation
+
+This makes local security experimentation possible without requiring a hosted LLM API.
 
 ---
 
-# Security Regression Detection
+## 📈 Interactive Security Dashboard
 
-AegisLLM can compare two benchmark runs and detect security regressions.
+AegisLLM generates an HTML dashboard for analyzing benchmark results.
 
-```bash
-python scripts/compare_runs.py \
-  results/baseline.json \
-  results/current.json
-```
+The dashboard includes:
 
-The regression engine compares:
-
+- Overall risk indicator
+- Risk score
+- Model information
+- Total attacks
+- Successful attacks
 - Attack Success Rate
-- Risk Score
-- Category-level ASR
-- Individual attack outcomes
+- Average latency
+- Benchmark metadata
+- Generation timestamp
+- Category analysis
+- Interactive category views
+- Latency analysis and sorting
+- Attack score analysis and sorting
+- Attack result table
+- Category filters
+- Success/failure filters
+- Attack search
+- JSON export
+- CSV export
+- Empty states
+- Responsive layout
+- Section navigation
 
-Example:
+The dashboard is intended to make security benchmark results easier to inspect and communicate.
+
+---
+
+## 🧩 Architecture
+
+AegisLLM is organized into modular components:
 
 ```text
-Attack Success Rate     40.00% → 60.00%
-Risk Score              45.00% → 65.00%
-
-[REGRESSION] system_override
-[REGRESSION] persona_jailbreak
-
-[IMPROVEMENT] roleplay_jailbreak
+                         ┌──────────────────────┐
+                         │      AegisLLM        │
+                         └──────────┬───────────┘
+                                    │
+              ┌─────────────────────┼─────────────────────┐
+              │                     │                     │
+              ▼                     ▼                     ▼
+       Attack Modules         Benchmark Engine       Defense Modules
+              │                     │                     │
+              │                     ▼                     │
+              │              Target Adapters            │
+              │                     │                     │
+              │                     ▼                     │
+              │                   LLM                     │
+              │                     │                     │
+              └─────────────────────┼─────────────────────┘
+                                    ▼
+                           Evaluators & Metrics
+                                    │
+                 ┌──────────────────┼──────────────────┐
+                 ▼                  ▼                  ▼
+              Risk             Regression          Exports
+                 │                  │                  │
+                 └──────────────────┼──────────────────┘
+                                    ▼
+                              HTML Dashboard
 ```
 
-Configurable regression thresholds are also supported:
+### Main areas
 
-```bash
-python scripts/compare_runs.py \
-  results/baseline.json \
-  results/current.json \
-  --asr-threshold 0.05 \
-  --risk-threshold 0.05 \
-  --category-threshold 0.10 \
-  --output results/regression-report.json
+```text
+aegis/
+├── attacks/       # Adversarial attack definitions
+├── adaptive/      # Adaptive attack execution and mutation
+├── benchmark/     # Benchmark execution and metrics
+├── defenses/      # Defensive evaluation
+├── evaluators/    # Response evaluation strategies
+├── targets/       # LLM target adapters
+└── dashboard/     # HTML dashboard generation
+
+tests/
+└── ...            # Automated project test suite
 ```
 
 ---
 
-# Adaptive Attack Engine
+## 🔬 Evaluation Workflow
 
-Static attack datasets cannot capture how an attacker may modify a failed attack and retry it.
-
-AegisLLM therefore includes an **adaptive adversarial attack engine**.
-
-When an original attack fails, AegisLLM can generate progressively mutated variants and retry them.
+A typical AegisLLM security evaluation follows this flow:
 
 ```text
-Original Attack
-      │
-      ▼
-    Failed?
-      │
-      ▼
-   Roleplay
-      │
-      ▼
-Context Wrapping
-      │
-      ▼
- Fragmentation
-      │
-      ▼
- Base64 Mutation
-```
-
-Execution stops when:
-
-- an attack succeeds, or
-- the maximum number of attempts is reached.
-
----
-
-## Adaptive Mutation Strategies
-
-Current strategies include:
-
-- Original attack
-- Roleplay mutation
-- Context wrapping
-- Instruction fragmentation
-- Base64 encoding
-
-The mutator architecture is extensible so additional strategies can be introduced later.
-
----
-
-## Adaptive Metrics
-
-AegisLLM tracks:
-
-- Original Attack Success Rate
-- Adaptive Attack Success Rate
-- Adaptive Gain
-- Average Attempts
-- Average Attempts to Success
-- Successful Mutation Strategies
-- Category-level Adaptive ASR
-
-Run the adaptive benchmark:
-
-```bash
-python scripts/run_adaptive_benchmark.py \
-  --model llama3.2:3b \
-  --all \
-  --evaluator exact \
-  --max-attempts 5 \
-  --output results/adaptive-all.json
-```
-
-Example experimental result:
-
-```text
-Total Attacks               : 15
-Original Successful Attacks : 5
-Adaptive Successful Attacks : 7
-
-Original ASR                : 33.33%
-Adaptive ASR                : 46.67%
-Adaptive Gain               : +13.33%
-
-Average Attempts            : 3.27
-Average Attempts to Success : 1.29
-```
-
-Category example:
-
-```text
-prompt_injection   20.00% → 40.00%
-jailbreak          80.00% → 100.00%
-encoding            0.00% → 0.00%
-```
-
-These results are experimental and may vary between model runs.
-
----
-
-# Defense Benchmarking
-
-AegisLLM also evaluates defenses against the same adversarial attack datasets.
-
-The defense architecture is separated from the target model:
-
-```text
-Attack
-  │
-  ├──────────────► No Defense ─────► LLM
-  │
-  └──► Defense ──► Decision
-                      │
-             ┌────────┴────────┐
-             │                 │
-          Blocked           Allowed
-             │                 │
-             ▼                 ▼
-         Safe Result          LLM
-```
-
-This allows defended and undefended execution to be compared directly.
-
----
-
-## Rule-Based Defense
-
-The current built-in defense is a configurable rule-based prompt guard.
-
-It supports:
-
-- regex-based detection,
-- weighted rules,
-- configurable detection thresholds,
-- detection reasons,
-- defense scores,
-- and pre-inference blocking.
-
-Example suspicious patterns include:
-
-- instruction overrides,
-- system/developer prompt manipulation,
-- role reassignment,
-- jailbreak terminology,
-- and priority manipulation.
-
-The rule guard is intended as a transparent baseline defense rather than a complete solution to LLM security.
-
----
-
-# Defense Metrics
-
-Defense evaluation reports:
-
-- Baseline ASR
-- Defended ASR
-- ASR Reduction
-- Defense Block Rate
-- Defense Bypass Rate
-- Category-level mitigation
-
-Run:
-
-```bash
-python scripts/run_defense_benchmark.py \
-  --model llama3.2:3b \
-  --all \
-  --evaluator exact \
-  --defense rule_guard \
-  --threshold 1.0 \
-  --output results/defense-all.json
-```
-
-Example experimental result:
-
-```text
-Baseline ASR       : 46.67%
-Defended ASR       : 13.33%
-ASR Reduction      : +33.33 percentage points
-Block Rate         : 26.67%
-Bypass Rate        : 13.33%
-```
-
-Category breakdown:
-
-| Category | Baseline ASR | Defended ASR | Reduction | Block Rate |
-|---|---:|---:|---:|---:|
-| Prompt Injection | 60.00% | 0.00% | +60.00% | 40.00% |
-| Jailbreak | 80.00% | 40.00% | +40.00% | 40.00% |
-| Encoding | 0.00% | 0.00% | +0.00% | 0.00% |
-
-Because LLM generation may be nondeterministic, differences between separate baseline and defended model calls should not automatically be attributed entirely to the defense.
-
----
-
-# Benign Control Evaluation
-
-Security mitigation alone is not enough to evaluate a defense.
-
-A defense that blocks every prompt could achieve a low attack success rate while making the model unusable.
-
-AegisLLM therefore includes a benign control dataset:
-
-```text
-datasets/benign/prompts.json
-```
-
-The defense is evaluated against harmless prompts to measure:
-
-- allowed benign prompts,
-- blocked benign prompts,
-- observed false-positive rate,
-- utility preservation rate.
-
-Current control experiment:
-
-```text
-Total Benign Prompts       : 10
-Allowed Benign Prompts     : 10
-Blocked Benign Prompts     : 0
-Observed False Positives   : 0 / 10
-Utility Preservation Rate  : 100.00%
-```
-
-This means the current rule guard produced **0 false positives among the 10 benign control prompts tested**.
-
-It should not be interpreted as evidence of a universal 0% false-positive rate.
-
----
-
-# Project Structure
-
-```text
-AegisLLM/
-│
-├── aegis/
-│   ├── adaptive/
-│   │   ├── metrics.py
-│   │   ├── mutators.py
-│   │   └── runner.py
-│   │
-│   ├── attacks/
-│   │   ├── dataset.py
-│   │   ├── encoding.py
-│   │   ├── jailbreak.py
-│   │   └── prompt_injection.py
-│   │
-│   ├── benchmark/
-│   │   ├── csv_report.py
-│   │   ├── metrics.py
-│   │   ├── offline.py
-│   │   ├── report.py
-│   │   ├── risk.py
-│   │   └── runner.py
-│   │
-│   ├── defenses/
-│   │   ├── base.py
-│   │   ├── benign.py
-│   │   ├── metrics.py
-│   │   ├── rule_guard.py
-│   │   └── runner.py
-│   │
-│   ├── evaluators/
-│   │   ├── contains.py
-│   │   └── evaluator.py
-│   │
-│   └── targets/
-│       ├── base.py
-│       └── ollama.py
-│
-├── datasets/
-│   ├── attacks/
-│   │   ├── encoding.json
-│   │   ├── jailbreak.json
-│   │   └── prompt_injection.json
-│   │
-│   └── benign/
-│       └── prompts.json
-│
-├── scripts/
-│   ├── compare_runs.py
-│   ├── evaluate_results.py
-│   ├── run_adaptive_benchmark.py
-│   ├── run_benchmark.py
-│   └── run_defense_benchmark.py
-│
-├── tests/
-│
-└── README.md
+1. Select LLM Target
+          ↓
+2. Select Attack Dataset
+          ↓
+3. Execute Attacks
+          ↓
+4. Evaluate Responses
+          ↓
+5. Calculate Security Metrics
+          ↓
+6. Calculate Risk
+          ↓
+7. Evaluate Defense
+          ↓
+8. Compare Benchmark Runs
+          ↓
+9. Export Results
+          ↓
+10. Inspect Dashboard
 ```
 
 ---
 
-# Installation
+## 🚀 Getting Started
 
-Clone the repository:
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/PIXELL07/AegisLLM.git
 cd AegisLLM
 ```
 
-Create a virtual environment:
+### 2. Create a virtual environment
 
 ```bash
 python3 -m venv .venv
 ```
 
-Activate it.
-
-macOS / Linux:
+Activate it:
 
 ```bash
 source .venv/bin/activate
 ```
 
-Install the project dependencies:
+### 3. Install AegisLLM
 
 ```bash
 pip install -e .
 ```
 
----
-
-# Ollama Setup
-
-AegisLLM currently uses Ollama as its local model target.
-
-Install Ollama and pull a model such as:
+### 4. Run the test suite
 
 ```bash
-ollama pull llama3.2:3b
+python -m pytest -q
 ```
 
-Verify:
-
-```bash
-ollama list
-```
-
-Then run a benchmark:
-
-```bash
-python scripts/run_benchmark.py \
-  --model llama3.2:3b \
-  --all
-```
-
----
-
-# Testing
-
-Run the complete test suite:
-
-```bash
-python -m pytest -v
-```
-
-Current checkpoint:
+Current project checkpoint:
 
 ```text
-215 tests passing
+265 tests passed
 ```
-
-The test suite covers the attack engine, evaluators, benchmark metrics, reporting, offline evaluation, regression detection, adaptive attacks, defense benchmarking, benign controls, and CLI behavior.
 
 ---
 
-# Current Capabilities
+## 🧪 Testing
+
+The automated test suite covers major project areas including:
+
+- Benchmark execution
+- Attack handling
+- Adaptive attacks
+- Evaluators
+- Category metrics
+- Risk scoring
+- Defense benchmarking
+- Benign controls
+- Offline evaluation
+- Result exports
+- Regression detection
+- Dashboard generation
+- Dashboard interactions
+- Ollama target behavior
+- CLI functionality
+
+Run all tests with:
+
+```bash
+python -m pytest -q
+```
+
+---
+
+## 📦 Project Capabilities
 
 | Capability | Status |
-|---|---|
-| Prompt Injection Attacks | ✅ |
-| Jailbreak Attacks | ✅ |
+|---|:---:|
+| Prompt Injection Evaluation | ✅ |
+| Jailbreak Evaluation | ✅ |
 | Encoding Attacks | ✅ |
-| Ollama Target | ✅ |
+| Adaptive Attacks | ✅ |
+| Attack Dataset Support | ✅ |
 | Exact Evaluator | ✅ |
 | Contains Evaluator | ✅ |
-| ASR Metrics | ✅ |
-| Severity-Aware Risk | ✅ |
+| Risk Scoring | ✅ |
 | Category Metrics | ✅ |
-| JSON Export | ✅ |
-| CSV Export | ✅ |
+| Defense Benchmarking | ✅ |
+| Benign Control Evaluation | ✅ |
 | Offline Evaluation | ✅ |
 | Security Regression Detection | ✅ |
-| Configurable Regression Thresholds | ✅ |
-| Adaptive Attack Engine | ✅ |
-| Adaptive Mutation Strategies | ✅ |
-| Adaptive Metrics | ✅ |
-| Defense Interface | ✅ |
-| Rule-Based Defense | ✅ |
-| Defense Benchmarking | ✅ |
-| Defense Mitigation Metrics | ✅ |
-| Benign Control Evaluation | ✅ |
-| CLI Workflows | ✅ |
-| Automated Tests | ✅ |
+| Regression Thresholds | ✅ |
+| JSON Export | ✅ |
+| CSV Export | ✅ |
+| Ollama Target | ✅ |
+| HTML Dashboard | ✅ |
+| Interactive Dashboard | ✅ |
+| Attack Search and Filters | ✅ |
+| Automated Test Suite | ✅ |
 
 ---
 
-# Roadmap
+## 🎯 Why This Project Is Useful
 
-Planned next steps include:
+AegisLLM is useful when an LLM needs to be evaluated as a **security-sensitive component**, rather than only as a language-generation system.
 
-- security taxonomy and OWASP LLM risk mapping,
-- experiment/run metadata,
-- benchmark reproducibility improvements,
-- CI integration,
-- API layer,
-- dashboard/frontend,
-- additional target providers,
-- additional defenses,
-- larger adversarial and benign evaluation datasets.
+It can help teams:
 
----
+- Find weaknesses before deployment.
+- Compare different models.
+- Measure attack resistance.
+- Evaluate defensive controls.
+- Detect security regressions between runs.
+- Understand which attack categories are most effective.
+- Test locally running LLMs.
+- Produce reproducible benchmark results.
+- Communicate security findings through a dashboard.
 
-# Research Motivation
+In short:
 
-AegisLLM is inspired by research in automated red-teaming and adversarial evaluation of Large Language Models.
-
-Rather than reproducing an existing red-team agent directly, the project focuses on building a modular security benchmarking system around several core ideas:
-
-```text
-Static Adversarial Evaluation
-            +
-Adaptive Attack Discovery
-            +
-Defense Benchmarking
-            +
-Security Regression Detection
-            +
-Security / Utility Measurement
-```
-
-The goal is to make LLM security behavior measurable, comparable, and reproducible across benchmark runs.
+> **AegisLLM turns LLM security testing into a repeatable benchmarking process.**
 
 ---
 
-# Disclaimer
+## 🔭 Future Extensions
 
-AegisLLM is intended for **authorized security testing, research, and educational use**.
+The architecture is designed to support future additions such as:
 
-Only benchmark models and systems that you own or have explicit permission to test.
+- More LLM providers
+- Additional attack categories
+- Additional defense strategies
+- More sophisticated adaptive attack mutations
+- Expanded security metrics
+- More detailed benchmark comparison
+- Additional dashboard visualizations
 
-Security metrics reported by AegisLLM describe behavior observed under the selected models, datasets, evaluators, defenses, and benchmark configurations. They should not be interpreted as guarantees of model safety or security.
+These are extension points rather than requirements for the current framework.
 
 ---
 
+## ⚠️ Responsible Use
 
+AegisLLM is intended for:
+
+- Security research
+- Authorized testing
+- Defensive development
+- Academic experimentation
+- LLM robustness evaluation
+
+Only evaluate models and systems that you own or have explicit permission to test.
+
+The results of a benchmark depend on the selected model, attack dataset, evaluator, defense configuration, and benchmark settings. A benchmark result should therefore be interpreted as an evaluation of the tested configuration, not as a guarantee of overall model security.
+
+---
+
+## 📄 License
+
+See the repository's license information for the applicable terms.
+
+---
+
+<div align="center">
+
+### 🛡️ AegisLLM
+
+**Evaluate. Defend. Measure. Protect.**
+
+Built for safer and more measurable LLM security evaluation.
+
+</div>
