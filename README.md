@@ -1,25 +1,16 @@
 <div align="center">
 
-<img src="docs/aegisllm-logo.svg" alt="AegisLLM" width="900">
+<img src="docs/aegisllm-banner.png" alt="AegisLLM - LLM Security Benchmarking" width="100%">
 
 ### Security Benchmarking and Defensive Evaluation for Large Language Models
 
-AegisLLM is a modular security benchmarking framework designed to **evaluate, measure, and improve the security of Large Language Models (LLMs)** against adversarial attacks and defensive controls.
+AegisLLM is a modular security benchmarking framework designed to
+**evaluate, measure, and improve the security of Large Language Models (LLMs)**
+against adversarial attacks and defensive controls.
 
-It helps security researchers and developers answer a practical question:
-
-> **How well does an LLM withstand attacks, and how effective are our defenses at protecting it without unnecessarily blocking legitimate use?**
-
-<br>
-
-[![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-265%20passing-2ea44f?logo=pytest&logoColor=white)](https://docs.pytest.org/)
-[![Ollama](https://img.shields.io/badge/Ollama-supported-black?logo=ollama&logoColor=white)](https://ollama.com/)
-[![Security](https://img.shields.io/badge/focus-LLM%20security-red)](#why-aegisllm)
-[![License](https://img.shields.io/badge/license-see%20repository-lightgrey)](#license)
+> **Evaluate. Defend. Measure. Protect.**
 
 </div>
-
 ---
 
 ## 🛡️ Why AegisLLM?
